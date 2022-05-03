@@ -134,7 +134,8 @@ namespace Inferno
 
         public void CreateDrivers(CharacterMaster master)
         {
-            // NRE in line below ! !warsouhduscsdf
+            BrotherHurtDash = new();
+
             BrotherHurtDash.customName = "HurtDash";
             BrotherHurtDash.activationRequiresAimConfirmation = false;
             BrotherHurtDash.activationRequiresAimTargetLoS = false;
@@ -163,7 +164,7 @@ namespace Inferno
             BrotherHurtDash.shouldSprint = false;
             BrotherHurtDash.skillSlot = SkillSlot.Utility;
 
-            // BrotherHurtLeap = master.gameObject.AddComponent<AISkillDriver>();
+            BrotherHurtLeap = new();
 
             BrotherHurtLeap.customName = "HurtLeap";
             BrotherHurtLeap.activationRequiresAimConfirmation = false;
@@ -192,10 +193,12 @@ namespace Inferno
             BrotherHurtLeap.shouldSprint = false;
             BrotherHurtLeap.skillSlot = SkillSlot.Special;
 
-            // BrotherHurtDash = master.gameObject.AddComponent<AISkillDriver>();
-
             hurtstuff = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Brother/BrotherHurtBody.prefab").WaitForCompletion().GetComponents<AISkillDriver>().
-                      Where(ai => ai.customName == "HurtDash" || ai.customName == "HurtLeap").ToList();
+                          Where(ai => ai.customName == "HurtDash" || ai.customName == "HurtLeap").ToList();
+
+            /*hurtstuff = master.GetComponents<AISkillDriver>().
+                           Where(ai => ai.customName == "HurtDash" || ai.customName == "HurtLeap").ToList();
+            */
             List<AISkillDriver> ai = master.aiComponents[0].skillDrivers.ToList();
             ai.AddRange(hurtstuff);
             master.aiComponents[0].skillDrivers = ai.ToArray();
@@ -753,17 +756,17 @@ namespace Inferno
                     AISkillDriver XiConstructLazer = (from x in masterm.GetComponents<AISkillDriver>()
                                                       where x.skillSlot == SkillSlot.Primary
                                                       select x).First();
-                    XiConstructLazer.maxDistance = 70f;
+                    XiConstructLazer.maxDistance = 50f;
                     XiConstructLazer.minDistance = 25f;
                     AISkillDriver XiConstructShield = (from x in masterm.GetComponents<AISkillDriver>()
                                                        where x.skillSlot == SkillSlot.Utility
                                                        select x).First();
-                    XiConstructShield.maxDistance = 70f;
+                    XiConstructShield.maxDistance = 50f;
                     XiConstructShield.minDistance = 25f;
                     AISkillDriver XiConstructSummon = (from x in masterm.GetComponents<AISkillDriver>()
                                                        where x.skillSlot == SkillSlot.Special
                                                        select x).First();
-                    XiConstructSummon.maxDistance = 70f;
+                    XiConstructSummon.maxDistance = 50f;
                     XiConstructSummon.minDistance = 25f;
                     break;
 
