@@ -92,12 +92,6 @@ namespace Inferno
                     CharacterMaster.onStartGlobal += MasterChanges;
                     ApplyHooks();
                 }
-                else
-                {
-                    CharacterBody.onBodyAwakeGlobal -= BodyChanges;
-                    CharacterMaster.onStartGlobal -= MasterChanges;
-                    UndoHooks();
-                }
             };
             Run.onRunDestroyGlobal += (Run run) =>
             {
@@ -508,7 +502,7 @@ namespace Inferno
 
                         case true:
                             master.GetComponent<BaseAI>().fullVision = true;
-                            master.GetComponent<BaseAI>().aimVectorDampTime = 0.037f;
+                            master.GetComponent<BaseAI>().aimVectorDampTime = 0.0363f;
                             master.GetComponent<BaseAI>().aimVectorMaxSpeed = 250f;
                             break;
                     }
