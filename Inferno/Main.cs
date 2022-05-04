@@ -19,10 +19,14 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
+using RiskOfOptions;
+using RiskOfOptions.Options;
+using RiskOfOptions.OptionConfigs;
 
 namespace Inferno
 {
     [BepInDependency(R2API.R2API.PluginGUID)]
+    [BepInDependency("com.rune580.riskofoptions", BepInDependency.DependencyFlags.HardDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     [R2APISubmoduleDependency(nameof(DifficultyAPI), nameof(LanguageAPI))]
     public class Main : BaseUnityPlugin
@@ -53,6 +57,7 @@ namespace Inferno
         public static ConfigEntry<float> LevelRegen { get; set; }
         public static ConfigEntry<float> LevelMoveSpeed { get; set; }
         public static ConfigEntry<float> LevelAttackSpeed { get; set; }
+        public static ConfigEntry<float> DifficultyBoost { get; set; }
 
         //public static UnlockableDef BanditSkin;
         //public static UnlockableDef CommandoSkin;
@@ -71,6 +76,7 @@ namespace Inferno
             LevelRegen = Config.Bind("Scaling", "Regen Scaling", 0.08f, "Gives the specified level regen amount to each monster.");
             LevelMoveSpeed = Config.Bind("Scaling", "Move Speed Scaling", 0.12f, "Gives the specified level move speed amount to each monster.");
             LevelAttackSpeed = Config.Bind("Scaling", "Attack Speed Scaling", 0.003f, "Gives the specified level attack speed amount to each monster.");
+            // DifficultyBoost = Config.Bind("Scaling", "Difficulty Boost", 4f, "Increments the ambient level at the beginning of the run by the specified amount.");
 
             AddDifficulty();
 
@@ -79,6 +85,19 @@ namespace Inferno
             // idk wtf to do
 
             FillTokens();
+
+            ModSettingsManager.SetModIcon(inferno.LoadAsset<Sprite>("texInfernoIcon.png"));
+            ModSettingsManager.AddOption(new StepSliderOption(Scaling, new StepSliderConfig() { name = "Difficulty Scaling Percent", increment = 25f, min = 0f, max = float.MaxValue }));
+            ModSettingsManager.AddOption(new StepSliderOption(LevelRegen, new StepSliderConfig() { name = "Level Regen", increment = 0.01f, min = 0f, max = float.MaxValue }));
+            ModSettingsManager.AddOption(new StepSliderOption(LevelMoveSpeed, new StepSliderConfig() { name = "Level Move Speed", increment = 0.01f, min = 0f, max = float.MaxValue }));
+            ModSettingsManager.AddOption(new StepSliderOption(LevelAttackSpeed, new StepSliderConfig() { name = "Level Attack Speed", increment = 0.01f, min = 0f, max = float.MaxValue }));
+            ModSettingsManager.SetModDescription("Inferno, a unique difficulty mod that tries to increase difficulty in a fair and learnable way.");
+            /*
+            Scaling.SettingChanged += (object sender, EventArgs e) => { FillTokens(); };
+            LevelRegen.SettingChanged += (object sender, EventArgs e) => { FillTokens(); };
+            LevelMoveSpeed.SettingChanged += (object sender, EventArgs e) => { FillTokens(); };
+            LevelAttackSpeed.SettingChanged += (object sender, EventArgs e) => { FillTokens(); };
+            */
             var uselessPieceOfShit = Addressables.LoadAssetAsync<SkillDef>("RoR2/Base/Beetle/BeetleBodySleep.asset").WaitForCompletion();
             uselessPieceOfShit.baseMaxStock = 0;
             uselessPieceOfShit.requiredStock = 69;
@@ -91,6 +110,7 @@ namespace Inferno
                     CharacterBody.onBodyAwakeGlobal += BodyChanges;
                     CharacterMaster.onStartGlobal += MasterChanges;
                     ApplyHooks();
+                    IL.RoR2.Run.RecalculateDifficultyCoefficentInternal += Ambient;
                 }
             };
             Run.onRunDestroyGlobal += (Run run) =>
@@ -98,6 +118,7 @@ namespace Inferno
                 CharacterBody.onBodyAwakeGlobal -= BodyChanges;
                 CharacterMaster.onStartGlobal -= MasterChanges;
                 UndoHooks();
+                IL.RoR2.Run.RecalculateDifficultyCoefficentInternal -= Ambient;
             };
             //Run.onRunStartGlobal += ResetCooldowns;
 
@@ -1636,6 +1657,28 @@ namespace Inferno
             ghost.transform.localScale = new Vector3(1f, 1f, 1f);
             orig(self);
         }
+
+        private static void Ambient(ILContext il)
+        {
+            /*
+            ILCursor c = new(il);
+
+            c.GotoNext(MoveType.Before,
+            x => x.MatchLdsfld<Run>("ambientLevelCap")
+            );
+            c.EmitDelegate<Func<float, float>>((levelIn) =>
+            {
+                float difficultyBoost = DifficultyBoost.Value;
+
+                Run.instance.compensatedDifficultyCoefficient += difficultyBoost * 0.05f; //stage 3 spawnrates at stage 0 monsoon, stage 2 spawnrates at stage 0 rainstorm
+                //Run.instance.difficultyCoefficient += difficultyBoost / 2;
+                float levelOut = levelIn + difficultyBoost;
+                return levelOut;
+            });
+            */
+        }
+
+        // FUCKING HELL OF COURSE NO PUBLICIZED ASSEMBLY WORKS, ONLY FOR ME IM FUCKING CURTSEDSIAJIROJ#WTHJ%E$R*TGI(FDJUOBVHNJXDZ(USI$RE%HNDF
     }
 
     /*
