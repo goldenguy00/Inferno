@@ -72,9 +72,9 @@ namespace Inferno
 
             inferno = AssetBundle.LoadFromFile(Assembly.GetExecutingAssembly().Location.Replace("Inferno.dll", "inferno"));
 
-            Scaling = Config.Bind("Scaling", "Difficulty Scaling", 150f, "The Percentage of difficulty scaling, 150% is +50%. Useful for Grandmastery unlocks");
-            LevelRegen = Config.Bind("Scaling", "Regen Scaling", 0.08f, "Gives the specified level regen amount to each monster.");
+            Scaling = Config.Bind("Scaling", "Difficulty Scaling", 150f, "The Percentage of difficulty scaling, 150% is +50%. Useful for Grandmastery unlocks. Does not work when changing at runtime.");
             LevelMoveSpeed = Config.Bind("Scaling", "Move Speed Scaling", 0.12f, "Gives the specified level move speed amount to each monster.");
+            LevelRegen = Config.Bind("Scaling", "Regen Scaling", 0.08f, "Gives the specified level regen amount to each monster.");
             LevelAttackSpeed = Config.Bind("Scaling", "Attack Speed Scaling", 0.003f, "Gives the specified level attack speed amount to each monster.");
             // DifficultyBoost = Config.Bind("Scaling", "Difficulty Boost", 4f, "Increments the ambient level at the beginning of the run by the specified amount.");
 
@@ -87,16 +87,16 @@ namespace Inferno
             FillTokens();
 
             ModSettingsManager.SetModIcon(inferno.LoadAsset<Sprite>("texInfernoIcon.png"));
-            ModSettingsManager.AddOption(new StepSliderOption(Scaling, new StepSliderConfig() { name = "Difficulty Scaling Percent", increment = 25f, min = 0f, max = float.MaxValue }));
-            ModSettingsManager.AddOption(new StepSliderOption(LevelRegen, new StepSliderConfig() { name = "Level Regen", increment = 0.01f, min = 0f, max = float.MaxValue }));
-            ModSettingsManager.AddOption(new StepSliderOption(LevelMoveSpeed, new StepSliderConfig() { name = "Level Move Speed", increment = 0.01f, min = 0f, max = float.MaxValue }));
-            ModSettingsManager.AddOption(new StepSliderOption(LevelAttackSpeed, new StepSliderConfig() { name = "Level Attack Speed", increment = 0.01f, min = 0f, max = float.MaxValue }));
-            ModSettingsManager.SetModDescription("Inferno, a unique difficulty mod that tries to increase difficulty in a fair and learnable way.");
+            ModSettingsManager.AddOption(new StepSliderOption(Scaling, new StepSliderConfig() { restartRequired = true, increment = 25f, min = 0f, max = 1100f }));
+            ModSettingsManager.AddOption(new StepSliderOption(LevelMoveSpeed, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 1f }));
+            ModSettingsManager.AddOption(new StepSliderOption(LevelRegen, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 1f }));
+            ModSettingsManager.AddOption(new StepSliderOption(LevelAttackSpeed, new StepSliderConfig() { increment = 0.001f, min = 0f, max = 0.1f }));
+            ModSettingsManager.AddOption(new GenericButtonOption("", "Scaling", "Note that upon hitting the Reset to default button, this menu does not visually update until you leave the settings and go back in.", "Reset to default", ResetConfig));
             /*
-            Scaling.SettingChanged += (object sender, EventArgs e) => { FillTokens(); };
-            LevelRegen.SettingChanged += (object sender, EventArgs e) => { FillTokens(); };
-            LevelMoveSpeed.SettingChanged += (object sender, EventArgs e) => { FillTokens(); };
-            LevelAttackSpeed.SettingChanged += (object sender, EventArgs e) => { FillTokens(); };
+            Scaling.SettingChanged += (object sender, EventArgs e) => { AddDifficulty(); FillTokens(); };
+            LevelRegen.SettingChanged += (object sender, EventArgs e) => { AddDifficulty(); FillTokens(); };
+            LevelMoveSpeed.SettingChanged += (object sender, EventArgs e) => { AddDifficulty(); FillTokens(); };
+            LevelAttackSpeed.SettingChanged += (object sender, EventArgs e) => { AddDifficulty(); FillTokens(); };
             */
             var uselessPieceOfShit = Addressables.LoadAssetAsync<SkillDef>("RoR2/Base/Beetle/BeetleBodySleep.asset").WaitForCompletion();
             uselessPieceOfShit.baseMaxStock = 0;
@@ -123,6 +123,14 @@ namespace Inferno
             //Run.onRunStartGlobal += ResetCooldowns;
 
             // is this stupid? maybe
+        }
+
+        private void ResetConfig()
+        {
+            Scaling.Value = 150f;
+            LevelRegen.Value = 0.08f;
+            LevelMoveSpeed.Value = 0.12f;
+            LevelAttackSpeed.Value = 0.003f;
         }
 
         public void ChangeAmbientCap(Run run, RuleBook useless)
@@ -609,8 +617,7 @@ namespace Inferno
                                                        where x.customName == "Shoot"
                                                        select x).First();
                     MithrixWeakShards.movementType = AISkillDriver.MovementType.StrafeMovetarget;
-                    CreateDrivers(master);
-                    master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    // CreateDrivers(master);
                     break;
 
                 case "TitanMaster(Clone)":
@@ -781,6 +788,11 @@ namespace Inferno
                     AISkillDriver XiConstructSummon = (from x in masterm.GetComponents<AISkillDriver>()
                                                        where x.skillSlot == SkillSlot.Special
                                                        select x).First();
+                    XiConstructSummon.maxDistance = 50f;
+                    XiConstructSummon.minDistance = 25f;
+                    AISkillDriver XiConstructStrafeStep = (from x in masterm.GetComponents<AISkillDriver>()
+                                                           where x.customName == "StrafeStep"
+                                                           select x).First();
                     XiConstructSummon.maxDistance = 50f;
                     XiConstructSummon.minDistance = 25f;
                     break;
