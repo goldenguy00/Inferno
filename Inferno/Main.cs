@@ -35,7 +35,7 @@ namespace Inferno
 
         public const string PluginAuthor = "HIFU";
         public const string PluginName = "Inferno";
-        public const string PluginVersion = "1.1.4";
+        public const string PluginVersion = "1.1.5";
 
         public static DifficultyDef InfernoDiffDef;
 
@@ -58,6 +58,7 @@ namespace Inferno
         public static ConfigEntry<float> LevelMoveSpeed { get; set; }
         public static ConfigEntry<float> LevelAttackSpeed { get; set; }
         public static ConfigEntry<float> DifficultyBoost { get; set; }
+        public static ConfigEntry<float> ProjectileSpeed { get; set; }
 
         //public static UnlockableDef BanditSkin;
         //public static UnlockableDef CommandoSkin;
@@ -76,6 +77,7 @@ namespace Inferno
             LevelMoveSpeed = Config.Bind("Scaling", "Move Speed Scaling", 0.12f, "Gives the specified level move speed amount to each monster.");
             LevelRegen = Config.Bind("Scaling", "Regen Scaling", 0.08f, "Gives the specified level regen amount to each monster.");
             LevelAttackSpeed = Config.Bind("Scaling", "Attack Speed Scaling", 0.003f, "Gives the specified level attack speed amount to each monster.");
+            ProjectileSpeed = Config.Bind("Scaling", "Projectile Speed", 1.25f, "Multiplies the projectile speed by this.");
             // DifficultyBoost = Config.Bind("Scaling", "Difficulty Boost", 4f, "Increments the ambient level at the beginning of the run by the specified amount.");
 
             AddDifficulty();
@@ -91,6 +93,7 @@ namespace Inferno
             ModSettingsManager.AddOption(new StepSliderOption(LevelMoveSpeed, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 1f }));
             ModSettingsManager.AddOption(new StepSliderOption(LevelRegen, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 1f }));
             ModSettingsManager.AddOption(new StepSliderOption(LevelAttackSpeed, new StepSliderConfig() { increment = 0.001f, min = 0f, max = 0.1f }));
+            ModSettingsManager.AddOption(new StepSliderOption(ProjectileSpeed, new StepSliderConfig() { increment = 0.05f, min = 1f, max = 3 }));
             ModSettingsManager.AddOption(new GenericButtonOption("", "Scaling", "Note that upon hitting the Reset to default button, this menu does not visually update until you leave the settings and go back in.", "Reset to default", ResetConfig));
             /*
             Scaling.SettingChanged += (object sender, EventArgs e) => { AddDifficulty(); FillTokens(); };
@@ -131,6 +134,7 @@ namespace Inferno
             LevelRegen.Value = 0.08f;
             LevelMoveSpeed.Value = 0.12f;
             LevelAttackSpeed.Value = 0.003f;
+            ProjectileSpeed.Value = 1.25f;
         }
 
         public void ChangeAmbientCap(Run run, RuleBook useless)
@@ -1552,7 +1556,7 @@ namespace Inferno
         {
             if (self.rigidbody && !self.rigidbody.useGravity && self.gameObject.GetComponent<TeamFilter>().teamIndex == TeamIndex.Monster)
             {
-                self.desiredForwardSpeed *= 1.25f;
+                self.desiredForwardSpeed *= ProjectileSpeed.Value;
             }
             orig(self);
         }
