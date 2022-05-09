@@ -35,7 +35,7 @@ namespace Inferno
 
         public const string PluginAuthor = "HIFU";
         public const string PluginName = "Inferno";
-        public const string PluginVersion = "1.1.5";
+        public const string PluginVersion = "1.1.6";
 
         public static DifficultyDef InfernoDiffDef;
 
@@ -88,7 +88,7 @@ namespace Inferno
 
             FillTokens();
 
-            ModSettingsManager.SetModIcon(inferno.LoadAsset<Sprite>("texInfernoIcon.png"));
+            ModSettingsManager.SetModIcon(inferno.LoadAsset<Sprite>("texInferno2Icon.png"));
             ModSettingsManager.AddOption(new StepSliderOption(Scaling, new StepSliderConfig() { restartRequired = true, increment = 25f, min = 0f, max = 1100f }));
             ModSettingsManager.AddOption(new StepSliderOption(LevelMoveSpeed, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 1f }));
             ModSettingsManager.AddOption(new StepSliderOption(LevelRegen, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 1f }));
