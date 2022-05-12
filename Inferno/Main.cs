@@ -22,6 +22,7 @@ using Random = UnityEngine.Random;
 using RiskOfOptions;
 using RiskOfOptions.Options;
 using RiskOfOptions.OptionConfigs;
+using UnityEngine.Rendering.PostProcessing;
 
 namespace Inferno
 {
@@ -59,6 +60,15 @@ namespace Inferno
         public static ConfigEntry<float> LevelAttackSpeed { get; set; }
         public static ConfigEntry<float> DifficultyBoost { get; set; }
         public static ConfigEntry<float> ProjectileSpeed { get; set; }
+        public static ConfigEntry<float> ColorGradingRedGain { get; set; }
+        public static ConfigEntry<float> VignetteIntensity { get; set; }
+        public static ConfigEntry<float> PostProcessingWeight { get; set; }
+
+        public static ColorGrading cg;
+        public static Vignette vn;
+
+        public static bool ShouldRun = false;
+        public static GameObject ppHolder;
 
         //public static UnlockableDef BanditSkin;
         //public static UnlockableDef CommandoSkin;
@@ -78,6 +88,9 @@ namespace Inferno
             LevelRegen = Config.Bind("Scaling", "Regen Scaling", 0.08f, "Gives the specified level regen amount to each monster.");
             LevelAttackSpeed = Config.Bind("Scaling", "Attack Speed Scaling", 0.003f, "Gives the specified level attack speed amount to each monster.");
             ProjectileSpeed = Config.Bind("Scaling", "Projectile Speed", 1.25f, "Multiplies the projectile speed by this.");
+            ColorGradingRedGain = Config.Bind("Post Processing", "Red Gain", 1.3f, "");
+            VignetteIntensity = Config.Bind("Post Processing", "Vignette Intensity", 0.21f, "");
+            PostProcessingWeight = Config.Bind("Post Processing", "Strength", 1f, "");
             // DifficultyBoost = Config.Bind("Scaling", "Difficulty Boost", 4f, "Increments the ambient level at the beginning of the run by the specified amount.");
 
             AddDifficulty();
@@ -88,13 +101,36 @@ namespace Inferno
 
             FillTokens();
 
+            ppHolder = new("PPInferno");
+            DontDestroyOnLoad(ppHolder);
+            ppHolder.layer = RoR2.LayerIndex.postProcess.intVal;
+            ppHolder.AddComponent<InfernoPostProcessingController>();
+            PostProcessVolume pp = ppHolder.AddComponent<PostProcessVolume>();
+            DontDestroyOnLoad(pp);
+            pp.isGlobal = true;
+            pp.weight = 1f;
+            pp.priority = 50;
+            PostProcessProfile ppProfile = ScriptableObject.CreateInstance<PostProcessProfile>();
+            DontDestroyOnLoad(ppProfile);
+            ppProfile.name = "ppInferno";
+            cg = ppProfile.AddSettings<ColorGrading>();
+            cg.SetAllOverridesTo(true);
+            vn = ppProfile.AddSettings<Vignette>();
+            vn.SetAllOverridesTo(true);
+
+            pp.sharedProfile = ppProfile;
+
             ModSettingsManager.SetModIcon(inferno.LoadAsset<Sprite>("texInferno2Icon.png"));
             ModSettingsManager.AddOption(new StepSliderOption(Scaling, new StepSliderConfig() { restartRequired = true, increment = 25f, min = 0f, max = 1100f }));
             ModSettingsManager.AddOption(new StepSliderOption(LevelMoveSpeed, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 1f }));
             ModSettingsManager.AddOption(new StepSliderOption(LevelRegen, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 1f }));
             ModSettingsManager.AddOption(new StepSliderOption(LevelAttackSpeed, new StepSliderConfig() { increment = 0.001f, min = 0f, max = 0.1f }));
             ModSettingsManager.AddOption(new StepSliderOption(ProjectileSpeed, new StepSliderConfig() { increment = 0.05f, min = 1f, max = 3 }));
+            ModSettingsManager.AddOption(new StepSliderOption(ColorGradingRedGain, new StepSliderConfig() { increment = 0.1f, min = 0f, max = 20f }));
+            ModSettingsManager.AddOption(new StepSliderOption(VignetteIntensity, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 1f }));
+            ModSettingsManager.AddOption(new StepSliderOption(PostProcessingWeight, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 1f }));
             ModSettingsManager.AddOption(new GenericButtonOption("", "Scaling", "Note that upon hitting the Reset to default button, this menu does not visually update until you leave the settings and go back in.", "Reset to default", ResetConfig));
+            ModSettingsManager.AddOption(new GenericButtonOption("", "Post Processing", "Note that upon hitting the Reset to default button, this menu does not visually update until you leave the settings and go back in.", "Reset to default", ResetPostProcessing));
             /*
             Scaling.SettingChanged += (object sender, EventArgs e) => { AddDifficulty(); FillTokens(); };
             LevelRegen.SettingChanged += (object sender, EventArgs e) => { AddDifficulty(); FillTokens(); };
@@ -108,12 +144,14 @@ namespace Inferno
             Run.onRunSetRuleBookGlobal += ChangeAmbientCap;
             Run.onRunStartGlobal += (Run run) =>
             {
+                ShouldRun = false;
                 if (run.selectedDifficulty == InfernoDiffIndex)
                 {
                     CharacterBody.onBodyAwakeGlobal += BodyChanges;
                     CharacterMaster.onStartGlobal += MasterChanges;
                     ApplyHooks();
                     IL.RoR2.Run.RecalculateDifficultyCoefficentInternal += Ambient;
+                    ShouldRun = true;
                 }
             };
             Run.onRunDestroyGlobal += (Run run) =>
@@ -122,6 +160,7 @@ namespace Inferno
                 CharacterMaster.onStartGlobal -= MasterChanges;
                 UndoHooks();
                 IL.RoR2.Run.RecalculateDifficultyCoefficentInternal -= Ambient;
+                ShouldRun = false;
             };
             //Run.onRunStartGlobal += ResetCooldowns;
 
@@ -135,6 +174,39 @@ namespace Inferno
             LevelMoveSpeed.Value = 0.12f;
             LevelAttackSpeed.Value = 0.003f;
             ProjectileSpeed.Value = 1.25f;
+        }
+
+        private void ResetPostProcessing()
+        {
+            ColorGradingRedGain.Value = 1.3f;
+            VignetteIntensity.Value = 0.21f;
+            PostProcessingWeight.Value = 1f;
+        }
+
+        public void FixedUpdate()
+        {
+            if (ShouldRun)
+            {
+                ppHolder.SetActive(true);
+                cg.enabled.value = true;
+                cg.contrast.value = 70f;
+                cg.gain.value = new Vector4(ColorGradingRedGain.Value, 1f, 1f, 2.5f);
+                vn.intensity.value = VignetteIntensity.Value;
+                cg.hueShift.value = 0f;
+                cg.postExposure.value = 0f;
+                cg.saturation.value = -9.610426f;
+                cg.temperature.value = 0f;
+                cg.tint.value = 0f;
+                vn.mode.value = VignetteMode.Classic;
+                vn.color.value = new Color32(105, 30, 37, 255);
+                vn.smoothness.value = 0.7f;
+                vn.rounded.value = false;
+                ppHolder.GetComponent<PostProcessVolume>().weight = PostProcessingWeight.Value;
+            }
+            else
+            {
+                ppHolder.SetActive(false);
+            }
         }
 
         public void ChangeAmbientCap(Run run, RuleBook useless)
@@ -1739,5 +1811,15 @@ namespace Inferno
         }
     }
     */
+
     // am i even doing this right???????????????????????????????????????????
+    public class InfernoPostProcessingController : MonoBehaviour
+    {
+        public PostProcessVolume volume;
+
+        public void Start()
+        {
+            volume = GetComponent<PostProcessVolume>();
+        }
+    }
 }
