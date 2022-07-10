@@ -37,7 +37,7 @@ namespace Inferno
 
         public const string PluginAuthor = "HIFU";
         public const string PluginName = "Inferno";
-        public const string PluginVersion = "1.3.2";
+        public const string PluginVersion = "1.4.0";
 
         public static DifficultyDef InfernoDiffDef;
 
@@ -59,15 +59,24 @@ namespace Inferno
         public static ConfigEntry<float> LevelRegen { get; set; }
         public static ConfigEntry<float> LevelMoveSpeed { get; set; }
         public static ConfigEntry<float> LevelAttackSpeed { get; set; }
+        public static ConfigEntry<float> LoopArmor { get; set; }
+        public static ConfigEntry<float> BossHp { get; set; }
+        public static ConfigEntry<float> MonsterHp { get; set; }
         public static ConfigEntry<float> LevelDiffBoost { get; set; }
         public static ConfigEntry<bool> LevelDiffBoostScaleWithPlayers { get; set; }
         public static ConfigEntry<float> ProjectileSpeed { get; set; }
         public static ConfigEntry<int> MonsterLimit { get; set; }
 
         public static ConfigEntry<bool> EnableAI { get; set; }
+        public static ConfigEntry<float> AIScaling { get; set; }
         public static ConfigEntry<bool> EnableSkills { get; set; }
         public static ConfigEntry<bool> EnableStats { get; set; }
+
         public static ConfigEntry<bool> EnableCDirector { get; set; }
+        public static ConfigEntry<float> CreditMultiplier { get; set; }
+
+        public static ConfigEntry<float> TeleporterSpeed { get; set; }
+        public static ConfigEntry<float> TeleporterSize { get; set; }
 
         public static ConfigEntry<float> ColorGradingRedGain { get; set; }
         public static ConfigEntry<float> VignetteIntensity { get; set; }
@@ -101,19 +110,26 @@ namespace Inferno
 
             inferno = AssetBundle.LoadFromFile(Assembly.GetExecutingAssembly().Location.Replace("Inferno.dll", "inferno"));
             Important = Config.Bind("General", "! Important !", true, "Make sure everyone's configs are the same for multiplayer!");
-            Scaling = Config.Bind("General", "Difficulty Scaling", 150f, "The Percentage of difficulty scaling, 150% is +50%. Difficulty order does not update visually. Vanilla is 150");
-            LevelMoveSpeed = Config.Bind("General", "Enemy Move Speed Scaling", 0.12f, "Gives the specified level move speed amount to each monster. Vanilla is 0");
-            LevelRegen = Config.Bind("General", "Enemy Regen Scaling", 0.08f, "Gives the specified level regen amount to each monster. Vanilla is 0");
-            LevelAttackSpeed = Config.Bind("General", "Enemy Attack Speed Scaling", 0.003f, "Gives the specified level attack speed amount to each monster. Vanilla is 0");
-            ProjectileSpeed = Config.Bind("General", "Enemy Projectile Speed", 1.25f, "Multiplies the projectile speed by the specified amount. Vanilla is 1");
-            LevelDiffBoost = Config.Bind("General", "Level and Difficulty Boost", 1.25f, "Increases the ambient level and difficulty coefficient by the specified amount. Vanilla is 0");
-            LevelDiffBoostScaleWithPlayers = Config.Bind("General", "Scale Difficulty Boost with player count?", false, "Can make it a hellofaloefofaloot harder. Vanilla is false");
-            MonsterLimit = Config.Bind("General", "Enemy Cap", 60, "Sets the monster limit to the specified amount. Vanilla is 40");
-            EnableAI = Config.Bind("General", "Enable AI Changes?", true, "Vanilla is false");
-            EnableSkills = Config.Bind("General", "Enable Skill Changes?", true, "Vanilla is false");
-            EnableStats = Config.Bind("General", "Enable Stat Changes?", true, "Vanilla is false");
-            EnableCDirector = Config.Bind("General", "Enable Combat Director Changes?", true, "Makes the combat director spawn monsters closer and with more variety during looping. Vanilla is false");
-            MithrixAS = Config.Bind("General", "Make Mithrix scale with Attack Speed?", false, "Vanilla is false");
+            Scaling = Config.Bind("General", "Difficulty Scaling", 150f, "Percentage of difficulty scaling, 150% is +50%. Difficulty order does not update visually. Vanilla is 150");
+            LevelMoveSpeed = Config.Bind("General", "Enemy Move Speed Scaling", 0.12f, "Adds move speed to each monster every level. Vanilla is 0");
+            LevelRegen = Config.Bind("General", "Enemy Regen Scaling", 0.08f, "Adds health regen to each monster every level. Vanilla is 0");
+            LevelAttackSpeed = Config.Bind("General", "Enemy Attack Speed Scaling", 0.003f, "Adds attack speed to each monster every level. Vanilla is 0");
+            LoopArmor = Config.Bind("General", "Enemy Armor Scaling", 10f, "Adds armor to each monster every completed loop. Vanilla is 0");
+            MonsterHp = Config.Bind("General", "Enemy Health Scaling", 0.06f, "Adds %max hp to each monster every completed stage. Vanilla is 0");
+            BossHp = Config.Bind("General", "Boss Health Scaling", 0.07f, "Adds %max hp to each boss every completed stage. Vanilla is 0");
+            ProjectileSpeed = Config.Bind("General", "Enemy Projectile Speed", 1.25f, "Sets the projectile speed multiplier. Vanilla is 1");
+            LevelDiffBoost = Config.Bind("General II", "Level and Difficulty Boost", 1.25f, "Adds to ambient level and difficulty coefficient. Vanilla is 0");
+            LevelDiffBoostScaleWithPlayers = Config.Bind("General II", "Scale Difficulty Boost with player count?", false, "Vanilla is false");
+            MonsterLimit = Config.Bind("General II", "Enemy Cap", 60, "Sets the enemy cap. Vanilla is 40");
+            EnableAI = Config.Bind("General II", "Enable AI Changes?", true, "Vanilla is false");
+            AIScaling = Config.Bind("General II", "AI Scaling Coefficient", 1.0f, "Adds to AI aim and range every cleared stage. Only works with AI Changes enabled. Vanilla is false");
+            EnableSkills = Config.Bind("General II", "Enable Skill Changes?", true, "Vanilla is false");
+            EnableStats = Config.Bind("General II", "Enable Stat Changes?", true, "Vanilla is false");
+            EnableCDirector = Config.Bind("General II", "Enable Combat Director Changes?", true, "Makes the combat director spawn monsters closer and with more variety during looping. Vanilla is false");
+            CreditMultiplier = Config.Bind("General II", "C. Director Credit Multiplier", 0.04f, "Adds to the combat director credit multiplier every cleared stage. Vanilla is 0");
+            TeleporterSpeed = Config.Bind("General III", "Holdout Zone Speed", 30f, "Adds to the percent of holdout zone speed. Vanilla is 0");
+            TeleporterSize = Config.Bind("General III", "Holdout Zone Radius", -30f, "Adds to the percent of holdout zone radius. Vanilla is 0");
+            MithrixAS = Config.Bind("Bullshit", "Make Mithrix scale with Attack Speed?", false, "Vanilla is false");
 
             ColorGradingRedGain = Config.Bind("Post Processing", "Red Gain", 3.7f, "Vanilla is 0");
             VignetteIntensity = Config.Bind("Post Processing", "Vignette Intensity", 0.21f, "Vanilla is 0");
@@ -152,14 +168,23 @@ namespace Inferno
             ModSettingsManager.AddOption(new StepSliderOption(LevelAttackSpeed, new StepSliderConfig() { increment = 0.001f, min = 0f, max = 0.1f }));
             ModSettingsManager.AddOption(new StepSliderOption(LevelMoveSpeed, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 1f }));
             ModSettingsManager.AddOption(new StepSliderOption(LevelRegen, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 1f }));
+            ModSettingsManager.AddOption(new StepSliderOption(LoopArmor, new StepSliderConfig() { increment = 5f, min = 0f, max = 50f }));
+            ModSettingsManager.AddOption(new StepSliderOption(MonsterHp, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 0.5f }));
+            ModSettingsManager.AddOption(new StepSliderOption(BossHp, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 0.5f }));
             ModSettingsManager.AddOption(new StepSliderOption(ProjectileSpeed, new StepSliderConfig() { increment = 0.05f, min = 1f, max = 5f }));
+
             ModSettingsManager.AddOption(new StepSliderOption(LevelDiffBoost, new StepSliderConfig() { increment = 0.25f, min = 0f, max = 10f }));
             ModSettingsManager.AddOption(new CheckBoxOption(LevelDiffBoostScaleWithPlayers));
             ModSettingsManager.AddOption(new CheckBoxOption(EnableCDirector));
+            ModSettingsManager.AddOption(new StepSliderOption(CreditMultiplier, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 0.25f }));
             ModSettingsManager.AddOption(new CheckBoxOption(EnableAI, new CheckBoxConfig() { description = "If in a run, restart it to apply changes. Vanilla is false" }));
+            ModSettingsManager.AddOption(new StepSliderOption(AIScaling, new StepSliderConfig() { increment = 0.1f, min = 0f, max = 3f }));
             ModSettingsManager.AddOption(new CheckBoxOption(EnableSkills, new CheckBoxConfig() { description = "If in a run, restart it to apply changes. Vanilla is false" }));
             ModSettingsManager.AddOption(new CheckBoxOption(EnableStats, new CheckBoxConfig() { description = "If in a run, restart it to apply changes. Vanilla is false" }));
             ModSettingsManager.AddOption(new IntSliderOption(MonsterLimit, new IntSliderConfig() { min = 0, max = 200 }));
+
+            ModSettingsManager.AddOption(new StepSliderOption(TeleporterSpeed, new StepSliderConfig() { increment = 5f, min = -50f, max = 50f }));
+            ModSettingsManager.AddOption(new StepSliderOption(TeleporterSize, new StepSliderConfig() { increment = 5f, min = -50f, max = 50f }));
 
             ModSettingsManager.AddOption(new GenericButtonOption("", "General", "Note that upon hitting the Reset to default button, this menu does not visually update until you leave the settings and go back in.", "Reset to default", ResetConfig));
             ModSettingsManager.AddOption(new CheckBoxOption(MithrixAS, new CheckBoxConfig() { category = "Bullshit" }));
@@ -187,10 +212,14 @@ namespace Inferno
                     if (EnableStats.Value)
                     {
                         CharacterBody.onBodyAwakeGlobal += BodyChanges;
+                        RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
                     }
                     if (EnableAI.Value)
                     {
                         CharacterMaster.onStartGlobal += MasterChanges;
+                        IL.EntityStates.AI.Walker.LookBusy.OnEnter += LookBusy_OnEnter;
+                        IL.EntityStates.AI.Walker.LookBusy.PickNewTargetLookDirection += LookBusy_PickNewTargetLookDirection;
+                        IL.EntityStates.AI.Walker.Wander.PickNewTargetLookPosition += Wander_PickNewTargetLookPosition;
                     }
                     if (EnableSkills.Value)
                     {
@@ -203,7 +232,11 @@ namespace Inferno
             Run.onRunDestroyGlobal += (Run run) =>
             {
                 CharacterBody.onBodyAwakeGlobal -= BodyChanges;
+                RecalculateStatsAPI.GetStatCoefficients -= RecalculateStatsAPI_GetStatCoefficients;
                 CharacterMaster.onStartGlobal -= MasterChanges;
+                IL.EntityStates.AI.Walker.LookBusy.OnEnter -= LookBusy_OnEnter;
+                IL.EntityStates.AI.Walker.LookBusy.PickNewTargetLookDirection -= LookBusy_PickNewTargetLookDirection;
+                IL.EntityStates.AI.Walker.Wander.PickNewTargetLookPosition -= Wander_PickNewTargetLookPosition;
                 UndoHooks();
                 IL.RoR2.Run.RecalculateDifficultyCoefficentInternal -= Ambient;
                 ShouldRun = false;
@@ -213,13 +246,21 @@ namespace Inferno
         private void RandomizeConfig()
         {
             RandomizeScaling();
-            RandomizeLevelRegen();
-            RandomizeLevelMoveSpeed();
             RandomizeLevelAttackSpeed();
+            RandomizeLevelMoveSpeed();
+            RandomizeLevelRegen();
+            RandomizeLoopArmor();
+            RandomizeBossHp();
             RandomizeProjectileSpeed();
             RandomizeLevelDiffBoost();
+            RandomizeCreditMultiplier();
+            RandomizeAIScaling();
             RandomizeMonsterLimit();
+            RandomizeTeleporterSize();
+            RandomizeTeleporterSpeed();
         }
+
+        #region FuckOff
 
         private void RandomizeScaling()
         {
@@ -241,6 +282,11 @@ namespace Inferno
             LevelAttackSpeed.Value = (float)Math.Round(randomAttackSpeedFuckYou.NextDouble() * (0.1f - 0f) + 0f, 3);
         }
 
+        private void RandomizeLoopArmor()
+        {
+            LoopArmor.Value = (float)Math.Round((float)rnggggggggggggg.Next(1, 10), MidpointRounding.ToEven) * 5f;
+        }
+
         private void RandomizeProjectileSpeed()
         {
             ProjectileSpeed.Value = (float)Math.Round((float)rnggggggggggggg.Next(20, 100), MidpointRounding.ToEven) * 0.05f;
@@ -256,12 +302,40 @@ namespace Inferno
             MonsterLimit.Value = random.Next(0, 200);
         }
 
+        private void RandomizeBossHp()
+        {
+            BossHp.Value = (float)Math.Round((float)rnggggggggggggg.Next(0, 50), MidpointRounding.ToEven) * 0.01f;
+        }
+
+        private void RandomizeCreditMultiplier()
+        {
+            CreditMultiplier.Value = (float)Math.Round((float)rnggggggggggggg.Next(0, 25), MidpointRounding.ToEven) * 0.01f;
+        }
+
+        private void RandomizeTeleporterSize()
+        {
+            TeleporterSize.Value = (float)Math.Round((float)rnggggggggggggg.Next(-10, 10), MidpointRounding.ToEven) * 5f;
+        }
+
+        private void RandomizeTeleporterSpeed()
+        {
+            TeleporterSpeed.Value = (float)Math.Round((float)rnggggggggggggg.Next(-10, 10), MidpointRounding.ToEven) * 5f;
+        }
+
+        private void RandomizeAIScaling()
+        {
+            AIScaling.Value = (float)Math.Round((float)rnggggggggggggg.Next(0, 30), MidpointRounding.ToEven) * 0.1f;
+        }
+
+        #endregion FuckOff
+
         private void ResetConfig()
         {
             Scaling.Value = 150f;
             LevelRegen.Value = 0.08f;
             LevelMoveSpeed.Value = 0.12f;
             LevelAttackSpeed.Value = 0.003f;
+            LoopArmor.Value = 10f;
             ProjectileSpeed.Value = 1.25f;
             LevelDiffBoost.Value = 1.25f;
             MonsterLimit.Value = 60;
@@ -271,6 +345,11 @@ namespace Inferno
             EnableCDirector.Value = true;
             LevelDiffBoostScaleWithPlayers.Value = false;
             MithrixAS.Value = false;
+            BossHp.Value = 0.05f;
+            CreditMultiplier.Value = 0.05f;
+            TeleporterSize.Value = -30f;
+            TeleporterSpeed.Value = 30f;
+            AIScaling.Value = 1f;
         }
 
         private void ResetPostProcessing()
@@ -335,8 +414,8 @@ namespace Inferno
                                                    (EnableCDirector.Value ? ">Combat Director: <style=cIsHealth>Resourceful</style>\n" : "") +
                                                    (LevelDiffBoost.Value > 0f ? ">Starting Difficulty: <style=cIsHealth>Increased</style>\n" : "") +
                                                    (EnableSkills.Value || EnableStats.Value ? ">Enemy Abilities: <style=cIsHealth>Improved</style>\n" : "") +
-                                                   (EnableAI.Value ? ">Enemy AI: <style=cIsHealth>Refined</style>\n" : "") +
-                                                   (MonsterLimit.Value != 40f ? (MonsterLimit.Value < 40f ? ">Enemy Cap: <style=cIsHealth>" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>" : ">Enemy Cap: <style=cIsHealth>+" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>") : "") +
+                                                   (EnableAI.Value ? ">Enemy AI: <style=cIsHealth>Refined" + (AIScaling.Value > 0f ? " + Evolving</style>\n" : "</style>\n") : "") +
+                                                   (MonsterLimit.Value != 40f ? (MonsterLimit.Value < 40f ? ">Enemy Cap: <style=cIsHealing>" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>" : ">Enemy Cap: <style=cIsHealth>+" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>") : "") +
                                                    "</style>";
             }
             return orig(self, token);
@@ -361,7 +440,7 @@ namespace Inferno
                                                    (EnableCDirector.Value ? ">Combat Director: <style=cIsHealth>Resourceful</style>\n" : "") +
                                                    (LevelDiffBoost.Value > 0f ? ">Starting Difficulty: <style=cIsHealth>Increased</style>\n" : "") +
                                                    (EnableSkills.Value || EnableStats.Value ? ">Enemy Abilities: <style=cIsHealth>Improved</style>\n" : "") +
-                                                   (EnableAI.Value ? ">Enemy AI: <style=cIsHealth>Refined</style>\n" : "") +
+                                                   (EnableAI.Value ? ">Enemy AI: <style=cIsHealth>Refined" + (AIScaling.Value > 0f ? " + Evolving</style>\n" : "</style>\n") : "") +
                                                    (MonsterLimit.Value != 40f ? (MonsterLimit.Value < 40f ? ">Enemy Cap: <style=cIsHealing>" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>" : ">Enemy Cap: <style=cIsHealth>+" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>") : "") +
                                                    "</style>");
 
@@ -488,7 +567,9 @@ namespace Inferno
                     break;
 
                 case "BrotherHurtBody(Clone)":
-                    cb.baseMoveSpeed = 14f;
+                    cb.baseMaxHealth = 500f;
+                    cb.levelMaxHealth = 150f;
+                    cb.baseMoveSpeed = 10f;
                     cb.sprintingSpeedMultiplier = 1.45f;
                     cb.baseDamage = 5f;
                     cb.levelDamage = 1f;
@@ -652,6 +733,10 @@ namespace Inferno
                     cb.levelMaxHealth = 750f;
                     cb.baseMoveSpeed = 12f;
                     break;
+
+                case "RoboBallMiniBody(Clone)":
+                    cb.baseMoveSpeed = 13f;
+                    break;
             }
         }
 
@@ -664,18 +749,37 @@ namespace Inferno
 
                 case TeamIndex.Monster:
 
-                    master.bodyInstanceObject.GetComponent<CharacterBody>().levelMoveSpeed = LevelMoveSpeed.Value;
-                    master.bodyInstanceObject.GetComponent<CharacterBody>().levelRegen = LevelRegen.Value;
-                    master.bodyInstanceObject.GetComponent<CharacterBody>().levelAttackSpeed = LevelAttackSpeed.Value;
+                    switch (master.bodyInstanceObject.GetComponent<CharacterBody>() == null)
+                    {
+                        case false:
+                            var cb = master.bodyInstanceObject.GetComponent<CharacterBody>();
+                            cb.levelMoveSpeed = LevelMoveSpeed.Value;
+                            cb.levelRegen = LevelRegen.Value;
+                            cb.levelAttackSpeed = LevelAttackSpeed.Value;
+                            if (cb.baseJumpCount < 2)
+                            {
+                                cb.baseJumpPower = 2;
+                            }
+                            if (cb.baseJumpPower < 20f)
+                            {
+                                cb.baseJumpPower = 20f;
+                            }
+                            break;
+
+                        default:
+                            break;
+                    }
                     switch (master.GetComponent<BaseAI>() != null && master.name != "GolemMaster(Clone)")
                     {
                         default:
                             break;
 
                         case true:
-                            master.GetComponent<BaseAI>().fullVision = true;
-                            master.GetComponent<BaseAI>().aimVectorDampTime = 0.031f;
-                            master.GetComponent<BaseAI>().aimVectorMaxSpeed = 250f;
+                            var ba = master.GetComponent<BaseAI>();
+                            ba.fullVision = true;
+                            ba.aimVectorDampTime = Mathf.Max(0.001f, 0.031f - (0.0001f * AIScaling.Value * Run.instance.stageClearCount));
+                            ba.aimVectorMaxSpeed = 250f + (20f * AIScaling.Value * Run.instance.stageClearCount);
+                            ba.enemyAttentionDuration = 1.5f;
                             break;
                     }
 
@@ -685,9 +789,11 @@ namespace Inferno
                             break;
 
                         case true:
-                            master.GetComponent<BaseAI>().fullVision = true;
-                            master.GetComponent<BaseAI>().aimVectorDampTime = 0.09f;
-                            master.GetComponent<BaseAI>().aimVectorMaxSpeed = 250f;
+                            var ba = master.GetComponent<BaseAI>();
+                            ba.fullVision = true;
+                            ba.aimVectorDampTime = Mathf.Max(0.001f, 0.09f - (0.0003f * AIScaling.Value * Run.instance.stageClearCount));
+                            ba.aimVectorMaxSpeed = 250f + (20f * AIScaling.Value * Run.instance.stageClearCount);
+                            ba.enemyAttentionDuration = 1.5f;
                             break;
                     }
                     break;
@@ -708,8 +814,9 @@ namespace Inferno
                     AISkillDriver BeetleQueenFireFuckwards = (from x in master.GetComponents<AISkillDriver>()
                                                               where x.customName == "SpawnWards"
                                                               select x).First();
-                    BeetleQueenFireFuckwards.maxDistance = 100f;
+                    BeetleQueenFireFuckwards.maxDistance = 100f + (20f * AIScaling.Value * Run.instance.stageClearCount);
                     BeetleQueenFireFuckwards.maxUserHealthFraction = Mathf.Infinity;
+                    master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
                     break;
 
                 case "GravekeeperMaster(Clone)":
@@ -758,7 +865,7 @@ namespace Inferno
                     AISkillDriver MithrixSprint = (from x in masterm.GetComponents<AISkillDriver>()
                                                    where x.customName == "Sprint After Target"
                                                    select x).First();
-                    MithrixSprint.minDistance = 40f;
+                    MithrixSprint.minDistance = 40f - (AIScaling.Value * Run.instance.stageClearCount);
                     break;
 
                 case "BrotherHurtMaster(Clone)":
@@ -794,7 +901,7 @@ namespace Inferno
                     AISkillDriver AlphaConstructFire = (from x in masterm.GetComponents<AISkillDriver>()
                                                         where x.customName == "Shooty"
                                                         select x).First();
-                    AlphaConstructFire.maxDistance = 100f;
+                    AlphaConstructFire.maxDistance = 100f + (20f * AIScaling.Value * Run.instance.stageClearCount);
                     break;
 
                 case "BeetleMaster(Clone)":
@@ -810,7 +917,7 @@ namespace Inferno
                     AISkillDriver BeetleGuardFireSunder = (from x in masterm.GetComponents<AISkillDriver>()
                                                            where x.customName == "FireSunder"
                                                            select x).First();
-                    BeetleGuardFireSunder.maxDistance = 100f;
+                    BeetleGuardFireSunder.maxDistance = 100f + (20f * AIScaling.Value * Run.instance.stageClearCount);
                     master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
                     master.inventory.GiveItem(RoR2Content.Items.SecondarySkillMagazine, 2);
                     break;
@@ -842,7 +949,7 @@ namespace Inferno
                                                       where x.minDistance == 15f
                                                       select x).First();
                     GreaterWispShoot.movementType = AISkillDriver.MovementType.StrafeMovetarget;
-                    GreaterWispShoot.maxDistance = 100f;
+                    GreaterWispShoot.maxDistance = 100f + (20f * AIScaling.Value * Run.instance.stageClearCount);
                     break;
 
                 case "ImpMaster(Clone)":
@@ -867,14 +974,14 @@ namespace Inferno
                                                    where x.customName == "StrafeAndShoot"
                                                    select x).First();
                     LemurianShoot.minDistance = 10f;
-                    LemurianShoot.maxDistance = 100f;
+                    LemurianShoot.maxDistance = 100f + (20f * AIScaling.Value * Run.instance.stageClearCount);
 
                     AISkillDriver LemurianStrafe = (from x in masterm.GetComponents<AISkillDriver>()
                                                     where x.customName == "StrafeIdley"
                                                     select x).First();
 
                     LemurianStrafe.minDistance = 10f;
-                    LemurianStrafe.maxDistance = 100f;
+                    LemurianStrafe.maxDistance = 100f + (20f * AIScaling.Value * Run.instance.stageClearCount);
                     break;
 
                 case "WispMaster(Clone)":
@@ -893,11 +1000,11 @@ namespace Inferno
                     AISkillDriver LunarExploderShoot = (from x in masterm.GetComponents<AISkillDriver>()
                                                         where x.customName == "StrafeAndShoot"
                                                         select x).First();
-                    LunarExploderShoot.maxDistance = 100f;
+                    LunarExploderShoot.maxDistance = 100f + (20f * AIScaling.Value * Run.instance.stageClearCount);
                     AISkillDriver LunarExploderSprintShoot = (from x in masterm.GetComponents<AISkillDriver>()
                                                               where x.customName == "SprintNodegraphAndShoot"
                                                               select x).First();
-                    LunarExploderSprintShoot.maxDistance = 100f;
+                    LunarExploderSprintShoot.maxDistance = 100f + (20f * AIScaling.Value * Run.instance.stageClearCount);
                     master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
                     break;
 
@@ -908,7 +1015,7 @@ namespace Inferno
                     StoneGolemShootLaser.selectionRequiresAimTarget = true;
                     StoneGolemShootLaser.activationRequiresAimTargetLoS = true;
                     StoneGolemShootLaser.activationRequiresAimConfirmation = true;
-                    StoneGolemShootLaser.maxDistance = 100f;
+                    StoneGolemShootLaser.maxDistance = 100f + (20f * AIScaling.Value * Run.instance.stageClearCount);
                     StoneGolemShootLaser.minDistance = 0f;
                     break;
 
@@ -963,7 +1070,8 @@ namespace Inferno
                     AISkillDriver ClayApothecaryFaceslam = (from x in masterm.GetComponents<AISkillDriver>()
                                                             where x.customName == "FaceSlam"
                                                             select x).First();
-                    ClayApothecaryFaceslam.maxDistance = 35f;
+                    ClayApothecaryFaceslam.maxDistance = 35f + (7f * AIScaling.Value * Run.instance.stageClearCount);
+                    master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
                     break;
 
                 case "ParentMaster(Clone)":
@@ -990,7 +1098,7 @@ namespace Inferno
                                                  where x.skillSlot == SkillSlot.Utility
                                                  select x).First();
                     BisonCharge.minDistance = 0f;
-                    BisonCharge.maxDistance = 150f;
+                    BisonCharge.maxDistance = 150f + (20f * AIScaling.Value * Run.instance.stageClearCount);
                     master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
                     break;
 
@@ -1030,6 +1138,18 @@ namespace Inferno
                                                        select x).First();
                     AurelioniteTurret.maxUserHealthFraction = 0.8f;
                     AurelioniteTurret.movementType = AISkillDriver.MovementType.StrafeMovetarget;
+                    break;
+
+                case "HermitCrabMaster(Clone)":
+                    master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    break;
+
+                case "LunarGolemMaster(Clone)":
+                    master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    break;
+
+                case "VoidMegaCrabBody(Clone)":
+                    master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
                     break;
             }
         }
@@ -1109,6 +1229,7 @@ namespace Inferno
             On.RoR2.Run.RecalculateDifficultyCoefficentInternal += AmbientLevelBoost;
             On.RoR2.MasterSummon.Perform += IncreaseMonsterCap;
             On.RoR2.CombatDirector.Awake += CombatDirector_Awake;
+            On.RoR2.HoldoutZoneController.Awake += HoldoutZoneController_Awake;
 
             On.EntityStates.BrotherMonster.WeaponSlam.OnEnter -= CleanupPillar;
             On.EntityStates.NullifierMonster.DeathState.OnEnter -= CleanupDeathState;
@@ -1183,12 +1304,14 @@ namespace Inferno
             On.EntityStates.VoidBarnacle.Weapon.ChargeFire.OnEnter -= ChargeFire;
             On.EntityStates.VoidBarnacle.Weapon.Fire.OnEnter -= Fire;
             On.EntityStates.NullifierMonster.DeathState.OnEnter -= DeathState;
+            On.EntityStates.VoidMegaCrab.DeathState.OnEnter -= DeathState2;
 
             On.RoR2.Projectile.ProjectileSimple.Start -= SpeedUpProjectiles;
 
             On.RoR2.Run.RecalculateDifficultyCoefficentInternal -= AmbientLevelBoost;
             On.RoR2.MasterSummon.Perform -= IncreaseMonsterCap;
             On.RoR2.CombatDirector.Awake -= CombatDirector_Awake;
+            On.RoR2.HoldoutZoneController.Awake -= HoldoutZoneController_Awake;
 
             On.EntityStates.BrotherMonster.WeaponSlam.OnEnter += CleanupPillar;
             On.EntityStates.NullifierMonster.DeathState.OnEnter += CleanupDeathState;
@@ -1201,11 +1324,12 @@ namespace Inferno
         {
             if (EnableCDirector.Value && !RiskyModCompat.enabled)
             {
-                self.goldRewardCoefficient = 0.96f;
                 self.maxConsecutiveCheapSkips = 2;
-                self.eliteBias = 1.1f;
-                self.maxSpawnDistance = 100f;
+                self.eliteBias = 0.9f;
+                self.maxSpawnDistance = 80f;
                 self.minSpawnRange = 14f;
+                self.creditMultiplier = 1f + (CreditMultiplier.Value * Run.instance.stageClearCount);
+                self.goldRewardCoefficient = 0.94f / self.creditMultiplier;
             }
             orig(self);
         }
@@ -1446,7 +1570,7 @@ namespace Inferno
             EntityStates.BrotherHaunt.FireRandomProjectiles.maximumCharges = 150;
             EntityStates.BrotherHaunt.FireRandomProjectiles.chargeRechargeDuration = 0.03f;
             EntityStates.BrotherHaunt.FireRandomProjectiles.chanceToFirePerSecond = 0.5f;
-            EntityStates.BrotherHaunt.FireRandomProjectiles.damageCoefficient = 15f;
+            EntityStates.BrotherHaunt.FireRandomProjectiles.damageCoefficient = 12f;
             orig(self);
         }
 
@@ -1870,23 +1994,132 @@ namespace Inferno
         private static void AmbientLevelBoost(On.RoR2.Run.orig_RecalculateDifficultyCoefficentInternal orig, Run self)
         {
             orig(self);
-            self.ambientLevel = (LevelDiffBoostScaleWithPlayers.Value ? Mathf.Min(self.ambientLevel + LevelDiffBoost.Value, int.MaxValue) : Mathf.Min(self.ambientLevel + (LevelDiffBoost.Value / self.participatingPlayerCount), int.MaxValue));
+            try
+            {
+                self.ambientLevel = (LevelDiffBoostScaleWithPlayers.Value ? Mathf.Min(self.ambientLevel + LevelDiffBoost.Value, int.MaxValue) : Mathf.Min(self.ambientLevel + (LevelDiffBoost.Value / self.participatingPlayerCount), int.MaxValue));
+            }
+            catch
+            {
+                InfernoLogger.LogError("Failed to fully apply Level and Difficulty boost");
+            }
         }
 
         private static void Ambient(ILContext il)
         {
             ILCursor c = new(il);
 
-            c.GotoNext(MoveType.Before,
+            if (c.TryGotoNext(MoveType.Before,
             x => x.MatchLdsfld<Run>("ambientLevelCap")
-            );
-            c.EmitDelegate<Func<float, float>>((levelIn) =>
+            ))
             {
-                float difficultyBoost = LevelDiffBoost.Value;
-                Run.instance.compensatedDifficultyCoefficient += difficultyBoost * 0.05f; //stage 3 spawnrates at stage 0 monsoon, stage 2 spawnrates at stage 0 rainstorm
-                float levelOut = levelIn + difficultyBoost;
-                return levelOut;
-            });
+                c.EmitDelegate<Func<float, float>>((levelIn) =>
+                {
+                    float difficultyBoost = LevelDiffBoost.Value;
+                    Run.instance.compensatedDifficultyCoefficient += difficultyBoost * 0.05f; //stage 3 spawnrates at stage 0 monsoon, stage 2 spawnrates at stage 0 rainstorm
+                    float levelOut = levelIn + difficultyBoost;
+                    return levelOut;
+                });
+            }
+            else
+            {
+                InfernoLogger.LogError("Failed to fully apply Level and Difficulty boost");
+            }
+        }
+
+        private static void HoldoutZoneController_Awake(On.RoR2.HoldoutZoneController.orig_Awake orig, HoldoutZoneController self)
+        {
+            orig(self);
+            self.calcRadius += Self_calcRadius;
+            self.calcChargeRate += Self_calcChargeRate;
+            self.calcColor += Self_calcColor;
+        }
+
+        private static void Self_calcColor(ref Color color)
+        {
+            color = new Color32(105, 30, 37, 255);
+        }
+
+        private static void Self_calcChargeRate(ref float rate)
+        {
+            rate *= 1f + TeleporterSpeed.Value / 100f;
+        }
+
+        private static void Self_calcRadius(ref float radius)
+        {
+            radius *= Mathf.Max(1f + TeleporterSize.Value / 100f, 0f);
+        }
+
+        private void RecalculateStatsAPI_GetStatCoefficients(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            if (sender && sender.teamComponent && sender.teamComponent.teamIndex == TeamIndex.Monster)
+            {
+                args.armorAdd += LoopArmor.Value * Run.instance.loopClearCount;
+            }
+            if (sender && sender.teamComponent && sender.teamComponent.teamIndex == TeamIndex.Monster && sender.isBoss)
+            {
+                args.healthMultAdd += BossHp.Value * Run.instance.stageClearCount;
+            }
+            if (sender && sender.teamComponent && sender.teamComponent.teamIndex == TeamIndex.Monster && !sender.isBoss && !sender.isChampion)
+            {
+                args.healthMultAdd += MonsterHp.Value * Run.instance.stageClearCount;
+            }
+        }
+
+        private void Wander_PickNewTargetLookPosition(ILContext il)
+        {
+            ILCursor c = new(il);
+
+            if (c.TryGotoNext(MoveType.Before,
+                x => x.MatchLdcR4(0.5f),
+                x => x.MatchLdcR4(4f)
+            ))
+            {
+                c.Next.Operand = 0.1f;
+                c.Index += 1;
+                c.Next.Operand = 1f;
+            }
+            else
+            {
+                InfernoLogger.LogError("Failed to change AI Wander_PickNewTargetLookPosition");
+            }
+        }
+
+        private void LookBusy_PickNewTargetLookDirection(ILContext il)
+        {
+            ILCursor c = new(il);
+
+            if (c.TryGotoNext(MoveType.Before,
+                x => x.MatchLdcR4(0.5f),
+                x => x.MatchLdcR4(4f)
+            ))
+            {
+                c.Next.Operand = 0.1f;
+                c.Index += 1;
+                c.Next.Operand = 1f;
+            }
+            else
+            {
+                InfernoLogger.LogError("Failed to change AI LookBusy_PickNewTargetLookPosition");
+            }
+        }
+
+        private void LookBusy_OnEnter(ILContext il)
+        {
+            ILCursor c = new(il);
+
+            if (c.TryGotoNext(MoveType.Before,
+                x => x.MatchLdcR4(2f),
+                x => x.MatchLdcR4(7f)
+            ))
+            {
+                c.Next.Operand = 0.1f;
+                c.Index += 1;
+                c.Next.Operand = 1f;
+            }
+            else
+            {
+                InfernoLogger.LogError("Failed to change AI LookBusy_OnEnter");
+            }
         }
 
         #endregion OnHooks
