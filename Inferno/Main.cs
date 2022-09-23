@@ -23,6 +23,9 @@ using RiskOfOptions;
 using RiskOfOptions.Options;
 using RiskOfOptions.OptionConfigs;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.SceneManagement;
+using System.ComponentModel;
+using EntityStates.BrotherMonster.Weapon;
 
 namespace Inferno
 {
@@ -30,14 +33,14 @@ namespace Inferno
     [BepInDependency("com.rune580.riskofoptions", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.RiskyLives.RiskyMod", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
-    [R2APISubmoduleDependency(nameof(DifficultyAPI), nameof(LanguageAPI))]
+    [R2APISubmoduleDependency(nameof(DifficultyAPI), nameof(LanguageAPI), nameof(RecalculateStatsAPI), nameof(ItemAPI))]
     public class Main : BaseUnityPlugin
     {
         public const string PluginGUID = PluginAuthor + "." + PluginName;
 
         public const string PluginAuthor = "HIFU";
         public const string PluginName = "Inferno";
-        public const string PluginVersion = "1.4.0";
+        public const string PluginVersion = "1.5.0";
 
         public static DifficultyDef InfernoDiffDef;
 
@@ -62,8 +65,10 @@ namespace Inferno
         public static ConfigEntry<float> LoopArmor { get; set; }
         public static ConfigEntry<float> BossHp { get; set; }
         public static ConfigEntry<float> MonsterHp { get; set; }
+        public static ConfigEntry<float> StageCooldownReduction { get; set; }
         public static ConfigEntry<float> LevelDiffBoost { get; set; }
         public static ConfigEntry<bool> LevelDiffBoostScaleWithPlayers { get; set; }
+        public static ConfigEntry<float> AllyPermanentDamage { get; set; }
         public static ConfigEntry<float> ProjectileSpeed { get; set; }
         public static ConfigEntry<int> MonsterLimit { get; set; }
 
@@ -104,29 +109,53 @@ namespace Inferno
 
         private static readonly System.Random randomAttackSpeedFuckYou = new();
 
+        public static GameObject Ramp1;
+        public static GameObject Ramp2;
+        public static GameObject Ramp3;
+        public static GameObject Rocks;
+
+        /*
+        public static SpawnCard LunarExploder;
+        public static SpawnCard LunarGolem;
+        public static SpawnCard LunarWisp;
+        */
+
+        public static int ShardCount = 0;
+
         public void Awake()
         {
             Main.InfernoLogger = base.Logger;
 
             inferno = AssetBundle.LoadFromFile(Assembly.GetExecutingAssembly().Location.Replace("Inferno.dll", "inferno"));
+
+            Items.Create();
+
+            /*
+            LunarExploder = Addressables.LoadAssetAsync<SpawnCard>("RoR2/Base/LunarExploder/cscLunarExploder.asset").WaitForCompletion();
+            LunarGolem = Addressables.LoadAssetAsync<SpawnCard>("RoR2/Base/LunarGolem/cscLunarGolem.asset").WaitForCompletion();
+            LunarWisp = Addressables.LoadAssetAsync<SpawnCard>("RoR2/Base/LunarWisp/cscLunarWisp.asset").WaitForCompletion();
+            */
+
             Important = Config.Bind("General", "! Important !", true, "Make sure everyone's configs are the same for multiplayer!");
             Scaling = Config.Bind("General", "Difficulty Scaling", 150f, "Percentage of difficulty scaling, 150% is +50%. Difficulty order does not update visually. Vanilla is 150");
             LevelMoveSpeed = Config.Bind("General", "Enemy Move Speed Scaling", 0.12f, "Adds move speed to each monster every level. Vanilla is 0");
-            LevelRegen = Config.Bind("General", "Enemy Regen Scaling", 0.08f, "Adds health regen to each monster every level. Vanilla is 0");
+            LevelRegen = Config.Bind("General", "Enemy Regen Scaling", 0.12f, "Adds health regen to each monster every level. Vanilla is 0");
             LevelAttackSpeed = Config.Bind("General", "Enemy Attack Speed Scaling", 0.003f, "Adds attack speed to each monster every level. Vanilla is 0");
             LoopArmor = Config.Bind("General", "Enemy Armor Scaling", 10f, "Adds armor to each monster every completed loop. Vanilla is 0");
-            MonsterHp = Config.Bind("General", "Enemy Health Scaling", 0.06f, "Adds %max hp to each monster every completed stage. Vanilla is 0");
-            BossHp = Config.Bind("General", "Boss Health Scaling", 0.07f, "Adds %max hp to each boss every completed stage. Vanilla is 0");
-            ProjectileSpeed = Config.Bind("General", "Enemy Projectile Speed", 1.25f, "Sets the projectile speed multiplier. Vanilla is 1");
+            MonsterHp = Config.Bind("General", "Enemy Health Scaling", 0.06f, "Adds % max hp to each monster every completed stage. Vanilla is 0");
+            BossHp = Config.Bind("General", "Boss Health Scaling", 0.07f, "Adds % max hp to each boss every completed stage. Vanilla is 0");
+            StageCooldownReduction = Config.Bind("General", "Enemy Cooldown Reduction Scaling", 0.01f, "Adds % cooldown reduction to each monster every completed stage. Vanilla is 0");
+            ProjectileSpeed = Config.Bind("General II", "Enemy Projectile Speed", 1.25f, "Sets the projectile speed multiplier. Vanilla is 1");
             LevelDiffBoost = Config.Bind("General II", "Level and Difficulty Boost", 1.25f, "Adds to ambient level and difficulty coefficient. Vanilla is 0");
             LevelDiffBoostScaleWithPlayers = Config.Bind("General II", "Scale Difficulty Boost with player count?", false, "Vanilla is false");
+            AllyPermanentDamage = Config.Bind("General III", "Ally Permanent Damage", 0f, "Makes allies take % max hp permanent damage. Vanilla is 0, Eclipse 8 is 40");
             MonsterLimit = Config.Bind("General II", "Enemy Cap", 60, "Sets the enemy cap. Vanilla is 40");
             EnableAI = Config.Bind("General II", "Enable AI Changes?", true, "Vanilla is false");
             AIScaling = Config.Bind("General II", "AI Scaling Coefficient", 1.0f, "Adds to AI aim and range every cleared stage. Only works with AI Changes enabled. Vanilla is false");
             EnableSkills = Config.Bind("General II", "Enable Skill Changes?", true, "Vanilla is false");
             EnableStats = Config.Bind("General II", "Enable Stat Changes?", true, "Vanilla is false");
             EnableCDirector = Config.Bind("General II", "Enable Combat Director Changes?", true, "Makes the combat director spawn monsters closer and with more variety during looping. Vanilla is false");
-            CreditMultiplier = Config.Bind("General II", "C. Director Credit Multiplier", 0.04f, "Adds to the combat director credit multiplier every cleared stage. Vanilla is 0");
+            CreditMultiplier = Config.Bind("General II", "C. Director Credit Multiplier", 0.05f, "Adds to the combat director credit multiplier every cleared stage. Vanilla is 0");
             TeleporterSpeed = Config.Bind("General III", "Holdout Zone Speed", 30f, "Adds to the percent of holdout zone speed. Vanilla is 0");
             TeleporterSize = Config.Bind("General III", "Holdout Zone Radius", -30f, "Adds to the percent of holdout zone radius. Vanilla is 0");
             MithrixAS = Config.Bind("Bullshit", "Make Mithrix scale with Attack Speed?", false, "Vanilla is false");
@@ -134,7 +163,7 @@ namespace Inferno
             ColorGradingRedGain = Config.Bind("Post Processing", "Red Gain", 3.7f, "Vanilla is 0");
             VignetteIntensity = Config.Bind("Post Processing", "Vignette Intensity", 0.21f, "Vanilla is 0");
             PostProcessingWeight = Config.Bind("Post Processing", "Strength", 1f, "Vanilla is 0");
-
+            #region Compare
             #region WhoCares
 
             AddDifficulty();
@@ -168,11 +197,12 @@ namespace Inferno
             ModSettingsManager.AddOption(new StepSliderOption(LevelAttackSpeed, new StepSliderConfig() { increment = 0.001f, min = 0f, max = 0.1f }));
             ModSettingsManager.AddOption(new StepSliderOption(LevelMoveSpeed, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 1f }));
             ModSettingsManager.AddOption(new StepSliderOption(LevelRegen, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 1f }));
+            ModSettingsManager.AddOption(new StepSliderOption(StageCooldownReduction, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 1f }));
             ModSettingsManager.AddOption(new StepSliderOption(LoopArmor, new StepSliderConfig() { increment = 5f, min = 0f, max = 50f }));
             ModSettingsManager.AddOption(new StepSliderOption(MonsterHp, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 0.5f }));
             ModSettingsManager.AddOption(new StepSliderOption(BossHp, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 0.5f }));
-            ModSettingsManager.AddOption(new StepSliderOption(ProjectileSpeed, new StepSliderConfig() { increment = 0.05f, min = 1f, max = 5f }));
 
+            ModSettingsManager.AddOption(new StepSliderOption(ProjectileSpeed, new StepSliderConfig() { increment = 0.05f, min = 1f, max = 5f }));
             ModSettingsManager.AddOption(new StepSliderOption(LevelDiffBoost, new StepSliderConfig() { increment = 0.25f, min = 0f, max = 10f }));
             ModSettingsManager.AddOption(new CheckBoxOption(LevelDiffBoostScaleWithPlayers));
             ModSettingsManager.AddOption(new CheckBoxOption(EnableCDirector));
@@ -183,6 +213,7 @@ namespace Inferno
             ModSettingsManager.AddOption(new CheckBoxOption(EnableStats, new CheckBoxConfig() { description = "If in a run, restart it to apply changes. Vanilla is false" }));
             ModSettingsManager.AddOption(new IntSliderOption(MonsterLimit, new IntSliderConfig() { min = 0, max = 200 }));
 
+            ModSettingsManager.AddOption(new StepSliderOption(AllyPermanentDamage, new StepSliderConfig() { increment = 5f, min = 0f, max = 500f }));
             ModSettingsManager.AddOption(new StepSliderOption(TeleporterSpeed, new StepSliderConfig() { increment = 5f, min = -50f, max = 50f }));
             ModSettingsManager.AddOption(new StepSliderOption(TeleporterSize, new StepSliderConfig() { increment = 5f, min = -50f, max = 50f }));
 
@@ -258,6 +289,7 @@ namespace Inferno
             RandomizeMonsterLimit();
             RandomizeTeleporterSize();
             RandomizeTeleporterSpeed();
+            RandomizeCooldownScaling();
         }
 
         #region FuckOff
@@ -327,29 +359,37 @@ namespace Inferno
             AIScaling.Value = (float)Math.Round((float)rnggggggggggggg.Next(0, 30), MidpointRounding.ToEven) * 0.1f;
         }
 
-        #endregion FuckOff
+        private void RandomizeCooldownScaling()
+        {
+            StageCooldownReduction.Value = (float)Math.Round((float)rnggggggggggggg.Next(0, 100), MidpointRounding.ToEven) * 0.01f;
+        }
 
+        #endregion FuckOff
+        #endregion Compare
         private void ResetConfig()
         {
             Scaling.Value = 150f;
-            LevelRegen.Value = 0.08f;
+            LevelRegen.Value = 0.12f;
             LevelMoveSpeed.Value = 0.12f;
             LevelAttackSpeed.Value = 0.003f;
             LoopArmor.Value = 10f;
+            MonsterHp.Value = 0.06f;
+            BossHp.Value = 0.07f;
+            StageCooldownReduction.Value = 0.01f;
             ProjectileSpeed.Value = 1.25f;
             LevelDiffBoost.Value = 1.25f;
+            LevelDiffBoostScaleWithPlayers.Value = false;
+            AllyPermanentDamage.Value = 0f;
             MonsterLimit.Value = 60;
             EnableAI.Value = true;
+            AIScaling.Value = 1f;
             EnableSkills.Value = true;
             EnableStats.Value = true;
             EnableCDirector.Value = true;
-            LevelDiffBoostScaleWithPlayers.Value = false;
-            MithrixAS.Value = false;
-            BossHp.Value = 0.05f;
             CreditMultiplier.Value = 0.05f;
-            TeleporterSize.Value = -30f;
             TeleporterSpeed.Value = 30f;
-            AIScaling.Value = 1f;
+            TeleporterSize.Value = -30f;
+            MithrixAS.Value = false;
         }
 
         private void ResetPostProcessing()
@@ -415,7 +455,8 @@ namespace Inferno
                                                    (LevelDiffBoost.Value > 0f ? ">Starting Difficulty: <style=cIsHealth>Increased</style>\n" : "") +
                                                    (EnableSkills.Value || EnableStats.Value ? ">Enemy Abilities: <style=cIsHealth>Improved</style>\n" : "") +
                                                    (EnableAI.Value ? ">Enemy AI: <style=cIsHealth>Refined" + (AIScaling.Value > 0f ? " + Evolving</style>\n" : "</style>\n") : "") +
-                                                   (MonsterLimit.Value != 40f ? (MonsterLimit.Value < 40f ? ">Enemy Cap: <style=cIsHealing>" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>" : ">Enemy Cap: <style=cIsHealth>+" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>") : "") +
+                                                   (MonsterLimit.Value != 40f ? (MonsterLimit.Value < 40f ? ">Enemy Cap: <style=cIsHealing>" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>" : ">Enemy Cap: <style=cIsHealth>+" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>\n") : "") +
+                                                   (AllyPermanentDamage.Value > 0f ? ">Allies receive <style=cIsHealth>permanent damage</style>\n" : "") +
                                                    "</style>";
             }
             return orig(self, token);
@@ -441,7 +482,8 @@ namespace Inferno
                                                    (LevelDiffBoost.Value > 0f ? ">Starting Difficulty: <style=cIsHealth>Increased</style>\n" : "") +
                                                    (EnableSkills.Value || EnableStats.Value ? ">Enemy Abilities: <style=cIsHealth>Improved</style>\n" : "") +
                                                    (EnableAI.Value ? ">Enemy AI: <style=cIsHealth>Refined" + (AIScaling.Value > 0f ? " + Evolving</style>\n" : "</style>\n") : "") +
-                                                   (MonsterLimit.Value != 40f ? (MonsterLimit.Value < 40f ? ">Enemy Cap: <style=cIsHealing>" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>" : ">Enemy Cap: <style=cIsHealth>+" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>") : "") +
+                                                   (MonsterLimit.Value != 40f ? (MonsterLimit.Value < 40f ? ">Enemy Cap: <style=cIsHealing>" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>" : ">Enemy Cap: <style=cIsHealth>+" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>\n") : "") +
+                                                   (AllyPermanentDamage.Value > 0f ? ">Allies receive <style=cIsHealth>permanent damage</style>\n" : "") +
                                                    "</style>");
 
             LanguageAPI.Add("ACHIEVEMENT_COMMANDOCLEARGAMEINFERNO_NAME", "Commando: Survival");
@@ -573,6 +615,8 @@ namespace Inferno
                     cb.sprintingSpeedMultiplier = 1.45f;
                     cb.baseDamage = 5f;
                     cb.levelDamage = 1f;
+                    cb.bodyFlags |= CharacterBody.BodyFlags.IgnoreFallDamage;
+                    cb.bodyFlags |= CharacterBody.BodyFlags.SprintAnyDirection;
                     break;
 
                 case "TitanBody(Clone)":
@@ -611,8 +655,8 @@ namespace Inferno
 
                 case "ClayBruiserBody(Clone)":
                     cb.baseMoveSpeed = 11f;
-                    cb.baseDamage = 13f;
-                    cb.levelDamage = 2.6f;
+                    cb.baseDamage = 11f;
+                    cb.levelDamage = 2.2f;
                     break;
 
                 case "LemurianBruiserBody(Clone)":
@@ -724,8 +768,8 @@ namespace Inferno
 
                 case "AcidLarvaBody(Clone)":
                     cb.sprintingSpeedMultiplier = 3f;
-                    cb.baseMaxHealth = 70f;
-                    cb.levelMaxHealth = 21f;
+                    cb.baseMaxHealth = 80f;
+                    cb.levelMaxHealth = 24f;
                     break;
 
                 case "TitanGoldBody(Clone)":
@@ -749,7 +793,8 @@ namespace Inferno
 
                 case TeamIndex.Monster:
 
-                    switch (master.bodyInstanceObject.GetComponent<CharacterBody>() == null)
+                    //switch (master.bodyInstanceObject.GetComponent<CharacterBody>() == null)
+                    switch (master.GetBody() == null)
                     {
                         case false:
                             var cb = master.bodyInstanceObject.GetComponent<CharacterBody>();
@@ -816,7 +861,8 @@ namespace Inferno
                                                               select x).First();
                     BeetleQueenFireFuckwards.maxDistance = 100f + (20f * AIScaling.Value * Run.instance.stageClearCount);
                     BeetleQueenFireFuckwards.maxUserHealthFraction = Mathf.Infinity;
-                    master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    //master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    master.inventory.GiveItem(Items.AllCooldownItemDef, 25);
                     break;
 
                 case "GravekeeperMaster(Clone)":
@@ -843,7 +889,7 @@ namespace Inferno
                     AISkillDriver ImpOverlordGroundPound = (from x in masterm.GetComponents<AISkillDriver>()
                                                             where x.customName == "GroundPound"
                                                             select x).First();
-                    ImpOverlordGroundPound.maxDistance = 15f;
+                    ImpOverlordGroundPound.maxDistance = 12f;
 
                     AISkillDriver ImpOverlordSpike = (from x in masterm.GetComponents<AISkillDriver>()
                                                       where x.customName == "FireVoidspikesWhenInRange"
@@ -862,10 +908,31 @@ namespace Inferno
                                                        select x).First();
                     MithrixFireShards.minDistance = 0f;
                     MithrixFireShards.maxUserHealthFraction = Mathf.Infinity;
+
                     AISkillDriver MithrixSprint = (from x in masterm.GetComponents<AISkillDriver>()
                                                    where x.customName == "Sprint After Target"
                                                    select x).First();
                     MithrixSprint.minDistance = 40f - (AIScaling.Value * Run.instance.stageClearCount);
+
+                    /*
+                    AISkillDriver DashForward = (from x in masterm.GetComponents<AISkillDriver>()
+                                                 where x.customName == "DashForward"
+                                                 select x).First();
+                    DashForward.minDistance = 30f;
+                    DashForward.maxDistance = 45f;
+                    */
+
+                    AISkillDriver DashStrafe = (from x in masterm.GetComponents<AISkillDriver>()
+                                                where x.customName == "DashStrafe"
+                                                select x).First();
+                    // DashStrafe.maxDistance = 30f;
+                    DashStrafe.nextHighPriorityOverride = MithrixFireShards;
+
+
+                    //master.inventory.GiveItem(Items.PrimaryStockItemDef, 1);
+                    master.inventory.GiveItem(Items.UtilityStockItemDef, 1);
+                    master.inventory.GiveItem(Items.SpecialStockItemDef, 1);
+                    master.inventory.GiveItem(Items.AllCooldownItemDef, 10);
                     break;
 
                 case "BrotherHurtMaster(Clone)":
@@ -880,6 +947,8 @@ namespace Inferno
                                                        select x).First();
                     MithrixWeakShards.movementType = AISkillDriver.MovementType.StrafeMovetarget;
                     // CreateDrivers(master);
+                    master.inventory.GiveItem(Items.PrimaryStockItemDef, 6);
+                    master.inventory.GiveItem(Items.AllCooldownItemDef, 5);
                     break;
 
                 case "TitanMaster(Clone)":
@@ -908,7 +977,7 @@ namespace Inferno
                     AISkillDriver BeetleHeadbutt = (from x in masterm.GetComponents<AISkillDriver>()
                                                     where x.customName == "HeadbuttOffNodegraph"
                                                     select x).First();
-                    BeetleHeadbutt.maxDistance = 25f;
+                    BeetleHeadbutt.maxDistance = 25f + (1f * AIScaling.Value * Run.instance.stageClearCount);
                     BeetleHeadbutt.selectionRequiresOnGround = true;
                     BeetleHeadbutt.activationRequiresAimTargetLoS = true;
                     break;
@@ -918,8 +987,10 @@ namespace Inferno
                                                            where x.customName == "FireSunder"
                                                            select x).First();
                     BeetleGuardFireSunder.maxDistance = 100f + (20f * AIScaling.Value * Run.instance.stageClearCount);
-                    master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
-                    master.inventory.GiveItem(RoR2Content.Items.SecondarySkillMagazine, 2);
+                    //master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    //master.inventory.GiveItem(RoR2Content.Items.SecondarySkillMagazine, 2);
+                    master.inventory.GiveItem(Items.AllCooldownItemDef, 25);
+                    master.inventory.GiveItem(Items.SecondaryStockItemDef, 2);
                     break;
 
                 case "FlyingVerminMaster(Clone)":
@@ -1005,7 +1076,8 @@ namespace Inferno
                                                               where x.customName == "SprintNodegraphAndShoot"
                                                               select x).First();
                     LunarExploderSprintShoot.maxDistance = 100f + (20f * AIScaling.Value * Run.instance.stageClearCount);
-                    master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    //master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    master.inventory.GiveItem(Items.AllCooldownItemDef, 5);
                     break;
 
                 case "GolemMaster(Clone)":
@@ -1040,23 +1112,23 @@ namespace Inferno
                     AISkillDriver XiConstructLazer = (from x in masterm.GetComponents<AISkillDriver>()
                                                       where x.skillSlot == SkillSlot.Primary
                                                       select x).First();
-                    XiConstructLazer.maxDistance = 50f;
-                    XiConstructLazer.minDistance = 25f;
+                    XiConstructLazer.maxDistance = 60f;
+                    XiConstructLazer.minDistance = 0f;
                     AISkillDriver XiConstructShield = (from x in masterm.GetComponents<AISkillDriver>()
                                                        where x.skillSlot == SkillSlot.Utility
                                                        select x).First();
-                    XiConstructShield.maxDistance = 50f;
-                    XiConstructShield.minDistance = 25f;
+                    XiConstructShield.maxDistance = 60f;
+                    XiConstructShield.minDistance = 0f;
                     AISkillDriver XiConstructSummon = (from x in masterm.GetComponents<AISkillDriver>()
                                                        where x.skillSlot == SkillSlot.Special
                                                        select x).First();
-                    XiConstructSummon.maxDistance = 50f;
-                    XiConstructSummon.minDistance = 25f;
+                    XiConstructSummon.maxDistance = 60f;
+                    XiConstructSummon.minDistance = 0f;
                     AISkillDriver XiConstructStrafeStep = (from x in masterm.GetComponents<AISkillDriver>()
                                                            where x.customName == "StrafeStep"
                                                            select x).First();
-                    XiConstructSummon.maxDistance = 50f;
-                    XiConstructSummon.minDistance = 25f;
+                    XiConstructSummon.maxDistance = 60f;
+                    XiConstructSummon.minDistance = 0f;
                     break;
 
                 case "GupMaster(Clone)":
@@ -1071,15 +1143,17 @@ namespace Inferno
                                                             where x.customName == "FaceSlam"
                                                             select x).First();
                     ClayApothecaryFaceslam.maxDistance = 35f + (7f * AIScaling.Value * Run.instance.stageClearCount);
-                    master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    //master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    master.inventory.GiveItem(Items.AllCooldownItemDef, 33);
                     break;
 
                 case "ParentMaster(Clone)":
                     AISkillDriver ParentTeleport = (from x in masterm.GetComponents<AISkillDriver>()
                                                     where x.customName == "Teleport"
                                                     select x).First();
-                    ParentTeleport.minDistance = 13f;
-                    master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    ParentTeleport.maxUserHealthFraction = 1f;
+                    //master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    master.inventory.GiveItem(Items.AllCooldownItemDef, 33);
                     break;
 
                 case "LunarWispMaster(Clone)":
@@ -1099,14 +1173,20 @@ namespace Inferno
                                                  select x).First();
                     BisonCharge.minDistance = 0f;
                     BisonCharge.maxDistance = 150f + (20f * AIScaling.Value * Run.instance.stageClearCount);
-                    master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    //master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    master.inventory.GiveItem(Items.AllCooldownItemDef, 20);
                     break;
 
                 case "VultureMaster(Clone)":
-                    master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    //master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    master.inventory.GiveItem(Items.AllCooldownItemDef, 25);
                     break;
 
                 case "MiniMushroomMaster(Clone)":
+                    AISkillDriver SporeGrenade = (from x in masterm.GetComponents<AISkillDriver>()
+                                                where x.customName == "Spore Grenade"
+                                                select x).First();
+                    SporeGrenade.maxDistance = 60f + (10f * AIScaling.Value * Run.instance.stageClearCount);
                     AISkillDriver MushrumPath = (from x in masterm.GetComponents<AISkillDriver>()
                                                  where x.customName == "Path"
                                                  select x).First();
@@ -1115,7 +1195,8 @@ namespace Inferno
                                                 where x.customName == "PathStrafe"
                                                 select x).First();
                     PathStrafe.shouldSprint = true;
-                    master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    //master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    master.inventory.GiveItem(Items.AllCooldownItemDef, 25);
                     break;
 
                 case "VagrantMaster(Clone)":
@@ -1141,15 +1222,55 @@ namespace Inferno
                     break;
 
                 case "HermitCrabMaster(Clone)":
-                    master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    //master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    master.inventory.GiveItem(Items.AllCooldownItemDef, 25);
                     break;
 
                 case "LunarGolemMaster(Clone)":
-                    master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    //master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    master.inventory.GiveItem(Items.AllCooldownItemDef, 12);
                     break;
 
-                case "VoidMegaCrabBody(Clone)":
-                    master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                case "VoidMegaCrabMaster(Clone)":
+                    //master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
+                    master.inventory.GiveItem(Items.AllCooldownItemDef, 33);
+                    break;
+                case "RoboBallBossMaster(Clone)":
+                    AISkillDriver EnableEyebeam = (from x in masterm.GetComponents<AISkillDriver>()
+                                                   where x.skillSlot == SkillSlot.Special
+                                                   select x).First();
+                    EnableEyebeam.maxUserHealthFraction = 0.5f;
+                    master.inventory.GiveItem(Items.PrimaryStockItemDef, 1);
+                    break;
+                case "ScavMaster(Clone)":
+                    AISkillDriver Sit = (from x in masterm.GetComponents<AISkillDriver>()
+                                         where x.customName == "Sit"
+                                         select x).First();
+                    Sit.maxUserHealthFraction = 0.75f;
+                    AISkillDriver FireCannon = (from x in masterm.GetComponents<AISkillDriver>()
+                                         where x.customName == "FireCannon"
+                                         select x).First();
+                    FireCannon.maxDistance = 100f;
+                    AISkillDriver ThrowSack = (from x in masterm.GetComponents<AISkillDriver>()
+                                                where x.customName == "ThrowSack"
+                                                select x).First();
+                    ThrowSack.maxDistance = 100f;
+                    AISkillDriver UseEquipmentAndFireCannon = (from x in masterm.GetComponents<AISkillDriver>()
+                                               where x.customName == "UseEquipmentAndFireCannon"
+                                                               select x).First();
+                    UseEquipmentAndFireCannon.maxDistance = 100f;
+                    break;
+                case "VoidBarnacleMaster(Clone)":
+                    AISkillDriver Shooty = (from x in masterm.GetComponents<AISkillDriver>()
+                                            where x.customName == "Shooty"
+                                            select x).First();
+                    Shooty.maxDistance = 100f;
+                    break;
+                case "SuperRoboBallBossMaster(Clone)":
+                    AISkillDriver FireAndStop = (from x in masterm.GetComponents<AISkillDriver>()
+                                            where x.customName == "FireAndStop"
+                                                 select x).First();
+                    FireAndStop.movementType = AISkillDriver.MovementType.StrafeMovetarget;
                     break;
             }
         }
@@ -1169,6 +1290,7 @@ namespace Inferno
             On.EntityStates.BrotherMonster.ExitSkyLeap.OnEnter += ExitSkyLeap;
             On.EntityStates.BrotherMonster.FistSlam.OnEnter += FistSlam;
             On.EntityStates.BrotherMonster.HoldSkyLeap.OnEnter += HoldSkyLeap;
+            On.EntityStates.BrotherMonster.SlideIntroState.OnEnter += SlideIntroState;
             On.EntityStates.BrotherMonster.SpellChannelEnterState.OnEnter += SpellChannelEnterState;
             On.EntityStates.BrotherMonster.SpellChannelExitState.OnEnter += SpellChannelExitState;
             On.EntityStates.BrotherMonster.SpellChannelState.OnEnter += SpellChannelState;
@@ -1178,6 +1300,7 @@ namespace Inferno
             On.EntityStates.BrotherMonster.StaggerLoop.OnEnter += StaggerLoop;
             On.EntityStates.BrotherMonster.TrueDeathState.OnEnter += TrueDeathState;
             On.EntityStates.BrotherMonster.UltChannelState.OnEnter += UltChannelState;
+            On.EntityStates.BrotherMonster.UltChannelState.FireWave += FireWave;
             On.EntityStates.BrotherMonster.Weapon.FireLunarShards.OnEnter += FireLunarShards;
             On.EntityStates.BrotherMonster.WeaponSlam.FixedUpdate += WeaponSlam2;
             On.EntityStates.BrotherMonster.WeaponSlam.OnEnter += WeaponSlam;
@@ -1212,8 +1335,10 @@ namespace Inferno
             On.EntityStates.MiniMushroom.SporeGrenade.OnEnter += SporeGrenade;
             On.EntityStates.MinorConstruct.Weapon.ChargeConstructBeam.OnEnter += ChargeConstructBeam;
             On.EntityStates.MinorConstruct.Weapon.FireConstructBeam.OnEnter += FireConstructBeam;
+            On.EntityStates.Missions.BrotherEncounter.Phase1.OnEnter += Phase1;
             On.EntityStates.Missions.BrotherEncounter.Phase2.OnEnter += Phase2;
             On.EntityStates.Missions.BrotherEncounter.Phase3.OnEnter += Phase3;
+            On.EntityStates.Missions.BrotherEncounter.Phase4.OnEnter += Phase4;
             On.EntityStates.NullifierMonster.FirePortalBomb.OnEnter += FirePortalBomb;
             On.EntityStates.TitanMonster.FireFist.OnEnter += FireFist2;
             On.EntityStates.TitanMonster.FireFist.OnEnter += FireFist;
@@ -1223,8 +1348,12 @@ namespace Inferno
             On.EntityStates.VoidBarnacle.Weapon.Fire.OnEnter += Fire;
             On.EntityStates.NullifierMonster.DeathState.OnEnter += DeathState;
             On.EntityStates.VoidMegaCrab.DeathState.OnEnter += DeathState2;
+            On.EntityStates.Wisp1Monster.FireEmbers.OnEnter += FireEmbers;
+            On.EntityStates.ClayGrenadier.FaceSlam.OnEnter += FaceSlam;
+            On.EntityStates.VagrantMonster.SpawnState.OnEnter += SpawnState;
 
             On.RoR2.Projectile.ProjectileSimple.Start += SpeedUpProjectiles;
+            On.RoR2.Projectile.ProjectileCharacterController.Awake += SpeedUpProjectiles2;
 
             On.RoR2.Run.RecalculateDifficultyCoefficentInternal += AmbientLevelBoost;
             On.RoR2.MasterSummon.Perform += IncreaseMonsterCap;
@@ -1234,6 +1363,109 @@ namespace Inferno
             On.EntityStates.BrotherMonster.WeaponSlam.OnEnter -= CleanupPillar;
             On.EntityStates.NullifierMonster.DeathState.OnEnter -= CleanupDeathState;
             On.EntityStates.VoidMegaCrab.DeathState.OnEnter -= CleanupDeathState2;
+
+            On.RoR2.SceneDirector.Start += CacheObjects;
+
+            On.RoR2.HealthComponent.Awake += HealthComponent_Awake;
+        }
+
+        private static void SlideIntroState(On.EntityStates.BrotherMonster.SlideIntroState.orig_OnEnter orig, EntityStates.BrotherMonster.SlideIntroState self)
+        {
+            if (self.isAuthority)
+            {
+                Ray aimRay = self.GetAimRay();
+                for (int i = 0; i < 6; i++)
+                {
+                    ProjectileManager.instance.FireProjectile(EntityStates.BrotherMonster.Weapon.FireLunarShards.projectilePrefab, aimRay.origin, Quaternion.LookRotation(aimRay.direction), self.gameObject, self.characterBody.damage * 0.03f / 12f, 0f, Util.CheckRoll(self.characterBody.crit, self.characterBody.master), DamageColorIndex.Default, null, -1f);
+                    aimRay.direction = Util.ApplySpread(aimRay.direction, 0f, 4f, 4f, 4f, 0f, 0f);
+                }
+            }
+            orig(self);
+        }
+
+        private static void FireWave(On.EntityStates.BrotherMonster.UltChannelState.orig_FireWave orig, EntityStates.BrotherMonster.UltChannelState self)
+        {
+            if (self.isAuthority)
+            {
+                float waves = 4f;
+                float SpinnyCount = 360f / waves;
+                Vector3 plane = Vector3.ProjectOnPlane(self.inputBank.aimDirection, Vector3.up);
+                Transform transgender = self.FindModelChild(EntityStates.BrotherMonster.WeaponSlam.muzzleString);
+                Vector3 pos = transgender.position + new Vector3(Random.Range(-50f, 50f), 0f, Random.Range(-50f, 50f));
+                int l = 0;
+                while (l < waves)
+                {
+                    Vector3 zase = Quaternion.AngleAxis(SpinnyCount * l, Vector3.up) * plane;
+                    ProjectileManager.instance.FireProjectile(EntityStates.BrotherMonster.UltChannelState.waveProjectileLeftPrefab, pos, Util.QuaternionSafeLookRotation(zase), self.gameObject, self.characterBody.damage * 4f, EntityStates.BrotherMonster.FistSlam.waveProjectileForce, Util.CheckRoll(self.characterBody.crit, self.characterBody.master), 0, null, -1f);
+                    l++;
+                }
+            }
+            orig(self);
+        }
+
+        private static void SpeedUpProjectiles2(On.RoR2.Projectile.ProjectileCharacterController.orig_Awake orig, ProjectileCharacterController self)
+        {
+            self.velocity *= ProjectileSpeed.Value;
+            if (self.lifetime < 4f)
+            {
+                self.lifetime = 4f;
+            }
+            orig(self);
+        }
+
+        private static void HealthComponent_Awake(On.RoR2.HealthComponent.orig_Awake orig, HealthComponent self)
+        {
+            self.gameObject.AddComponent<InfernoPermanentDamage>();
+            orig(self);
+        }
+
+        private static void SpawnState(On.EntityStates.VagrantMonster.SpawnState.orig_OnEnter orig, EntityStates.VagrantMonster.SpawnState self)
+        {
+            EntityStates.VagrantMonster.SpawnState.duration = 2f;
+            orig(self);
+        }
+
+        private static void FaceSlam(On.EntityStates.ClayGrenadier.FaceSlam.orig_OnEnter orig, EntityStates.ClayGrenadier.FaceSlam self)
+        {
+            EntityStates.ClayGrenadier.FaceSlam.blastRadius = 10f;
+            orig(self);
+        }
+
+        private static void FireEmbers(On.EntityStates.Wisp1Monster.FireEmbers.orig_OnEnter orig, EntityStates.Wisp1Monster.FireEmbers self)
+        {
+            EntityStates.Wisp1Monster.FireEmbers.damageCoefficient = 1.6f;
+            orig(self);
+        }
+
+        private static void Phase1(On.EntityStates.Missions.BrotherEncounter.Phase1.orig_OnEnter orig, EntityStates.Missions.BrotherEncounter.Phase1 self)
+        {
+            Ramp1.SetActive(false);
+            Ramp2.SetActive(false);
+            Ramp3.SetActive(false);
+            Rocks.SetActive(false);
+            orig(self);
+        }
+
+        private static void CacheObjects(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
+        {
+            if (SceneManager.GetActiveScene().name == "moon2")
+            {
+                var Arena = GameObject.Find("HOLDER: Final Arena").transform;
+                Ramp1 = Arena.GetChild(0).gameObject;
+                Ramp2 = Arena.GetChild(1).gameObject;
+                Ramp3 = Arena.GetChild(2).gameObject;
+                Rocks = Arena.GetChild(6).gameObject;
+            }
+            orig(self);
+        }
+
+        private static void Phase4(On.EntityStates.Missions.BrotherEncounter.Phase4.orig_OnEnter orig, EntityStates.Missions.BrotherEncounter.Phase4 self)
+        {
+            Ramp1.SetActive(false);
+            Ramp2.SetActive(false);
+            Ramp3.SetActive(false);
+            Rocks.SetActive(false);
+            orig(self);
         }
 
         internal static void UndoHooks()
@@ -1251,6 +1483,7 @@ namespace Inferno
             On.EntityStates.BrotherMonster.ExitSkyLeap.OnEnter -= ExitSkyLeap;
             On.EntityStates.BrotherMonster.FistSlam.OnEnter -= FistSlam;
             On.EntityStates.BrotherMonster.HoldSkyLeap.OnEnter -= HoldSkyLeap;
+            On.EntityStates.BrotherMonster.SlideIntroState.OnEnter += SlideIntroState;
             On.EntityStates.BrotherMonster.SpellChannelEnterState.OnEnter -= SpellChannelEnterState;
             On.EntityStates.BrotherMonster.SpellChannelExitState.OnEnter -= SpellChannelExitState;
             On.EntityStates.BrotherMonster.SpellChannelState.OnEnter -= SpellChannelState;
@@ -1260,6 +1493,7 @@ namespace Inferno
             On.EntityStates.BrotherMonster.StaggerLoop.OnEnter -= StaggerLoop;
             On.EntityStates.BrotherMonster.TrueDeathState.OnEnter -= TrueDeathState;
             On.EntityStates.BrotherMonster.UltChannelState.OnEnter -= UltChannelState;
+            On.EntityStates.BrotherMonster.UltChannelState.FireWave -= FireWave;
             On.EntityStates.BrotherMonster.Weapon.FireLunarShards.OnEnter -= FireLunarShards;
             On.EntityStates.BrotherMonster.WeaponSlam.FixedUpdate -= WeaponSlam2;
             On.EntityStates.BrotherMonster.WeaponSlam.OnEnter -= WeaponSlam;
@@ -1294,8 +1528,10 @@ namespace Inferno
             On.EntityStates.MiniMushroom.SporeGrenade.OnEnter -= SporeGrenade;
             On.EntityStates.MinorConstruct.Weapon.ChargeConstructBeam.OnEnter -= ChargeConstructBeam;
             On.EntityStates.MinorConstruct.Weapon.FireConstructBeam.OnEnter -= FireConstructBeam;
+            On.EntityStates.Missions.BrotherEncounter.Phase1.OnEnter -= Phase1;
             On.EntityStates.Missions.BrotherEncounter.Phase2.OnEnter -= Phase2;
             On.EntityStates.Missions.BrotherEncounter.Phase3.OnEnter -= Phase3;
+            On.EntityStates.Missions.BrotherEncounter.Phase4.OnEnter -= Phase4;
             On.EntityStates.NullifierMonster.FirePortalBomb.OnEnter -= FirePortalBomb;
             On.EntityStates.TitanMonster.FireFist.OnEnter -= FireFist2;
             On.EntityStates.TitanMonster.FireFist.OnEnter -= FireFist;
@@ -1305,8 +1541,12 @@ namespace Inferno
             On.EntityStates.VoidBarnacle.Weapon.Fire.OnEnter -= Fire;
             On.EntityStates.NullifierMonster.DeathState.OnEnter -= DeathState;
             On.EntityStates.VoidMegaCrab.DeathState.OnEnter -= DeathState2;
+            On.EntityStates.Wisp1Monster.FireEmbers.OnEnter -= FireEmbers;
+            On.EntityStates.ClayGrenadier.FaceSlam.OnEnter -= FaceSlam;
+            On.EntityStates.VagrantMonster.SpawnState.OnEnter -= SpawnState;
 
             On.RoR2.Projectile.ProjectileSimple.Start -= SpeedUpProjectiles;
+            On.RoR2.Projectile.ProjectileCharacterController.Awake -= SpeedUpProjectiles2;
 
             On.RoR2.Run.RecalculateDifficultyCoefficentInternal -= AmbientLevelBoost;
             On.RoR2.MasterSummon.Perform -= IncreaseMonsterCap;
@@ -1316,8 +1556,11 @@ namespace Inferno
             On.EntityStates.BrotherMonster.WeaponSlam.OnEnter += CleanupPillar;
             On.EntityStates.NullifierMonster.DeathState.OnEnter += CleanupDeathState;
             On.EntityStates.VoidMegaCrab.DeathState.OnEnter += CleanupDeathState2;
-        }
 
+            On.RoR2.SceneDirector.Start -= CacheObjects;
+
+            On.RoR2.HealthComponent.Awake -= HealthComponent_Awake;
+        }
         #region OnHooks
 
         private static void CombatDirector_Awake(On.RoR2.CombatDirector.orig_Awake orig, CombatDirector self)
@@ -1372,8 +1615,8 @@ namespace Inferno
         private static void FireHook(On.EntityStates.GravekeeperBoss.FireHook.orig_OnEnter orig, EntityStates.GravekeeperBoss.FireHook self)
         {
             EntityStates.GravekeeperBoss.FireHook.projectilePrefab = LegacyResourcesAPI.Load<GameObject>("prefabs/projectiles/GravekeeperHookProjectile");
-            EntityStates.GravekeeperBoss.FireHook.projectileDamageCoefficient = 1.2f;
-            EntityStates.GravekeeperBoss.FireHook.baseDuration = 1.5f;
+            EntityStates.GravekeeperBoss.FireHook.projectileDamageCoefficient = 1.3f;
+            EntityStates.GravekeeperBoss.FireHook.baseDuration = 2.1f;
             EntityStates.GravekeeperBoss.FireHook.projectileCount = 40;
             EntityStates.GravekeeperBoss.FireHook.spread = 360f;
             orig(self);
@@ -1424,7 +1667,7 @@ namespace Inferno
         private static void ExitSkyLeap(On.EntityStates.BrotherMonster.ExitSkyLeap.orig_OnEnter orig, EntityStates.BrotherMonster.ExitSkyLeap self)
         {
             EntityStates.BrotherMonster.ExitSkyLeap.waveProjectileCount = 20;
-            EntityStates.BrotherMonster.ExitSkyLeap.waveProjectileDamageCoefficient = 1.2f;
+            EntityStates.BrotherMonster.ExitSkyLeap.waveProjectileDamageCoefficient = 2f;
             orig(self);
         }
 
@@ -1440,9 +1683,9 @@ namespace Inferno
             }
             EntityStates.BrotherMonster.WeaponSlam.waveProjectileArc = 360f;
             EntityStates.BrotherMonster.WeaponSlam.waveProjectileCount = 8;
-            EntityStates.BrotherMonster.WeaponSlam.waveProjectileDamageCoefficient = 1.3f;
-            EntityStates.BrotherMonster.WeaponSlam.waveProjectileForce = -1300f;
-            EntityStates.BrotherMonster.WeaponSlam.weaponForce = -2000f;
+            EntityStates.BrotherMonster.WeaponSlam.waveProjectileDamageCoefficient = 2f;
+            EntityStates.BrotherMonster.WeaponSlam.waveProjectileForce = -1600f;
+            EntityStates.BrotherMonster.WeaponSlam.weaponForce = -2300f;
             var pillarprefab = EntityStates.BrotherMonster.WeaponSlam.pillarProjectilePrefab;
             pillarprefab.transform.localScale = new Vector3(4f, 4f, 4f);
             var ghost = pillarprefab.GetComponent<ProjectileController>().ghostPrefab;
@@ -1457,9 +1700,17 @@ namespace Inferno
             {
                 EntityStates.BrotherMonster.BaseSlideState.duration /= self.attackSpeedStat;
             }
-            if (self is EntityStates.BrotherMonster.SlideBackwardState)
+            switch (self)
             {
-                self.slideRotation = Quaternion.identity;
+                case EntityStates.BrotherMonster.SlideBackwardState:
+                    self.slideRotation = Quaternion.identity;
+                    break;
+                case EntityStates.BrotherMonster.SlideLeftState:
+                    self.slideRotation = Quaternion.AngleAxis(-40f, Vector3.up);
+                    break;
+                case EntityStates.BrotherMonster.SlideRightState:
+                    self.slideRotation = Quaternion.AngleAxis(40f, Vector3.up);
+                    break;
             }
             orig(self);
         }
@@ -1475,9 +1726,21 @@ namespace Inferno
             {
                 self.baseDuration = 1.4f;
             }
-            self.damageCoefficient = 1.4f;
+            self.damageCoefficient = 1.5f;
             self.pushAwayForce = 1500f;
             self.forceVector = new Vector3(0f, 750f, 0f);
+            if (self.isAuthority)
+            {
+                for (int i = 0; i < 6; i++)
+                {
+                    Ray aimRay = self.GetAimRay();
+                    Vector3 vector = Util.ApplySpread(aimRay.direction, 0f, 0f, 1f, 0f, (float)i * 5f, 0f);
+                    ProjectileManager.instance.FireProjectile(EntityStates.BrotherMonster.Weapon.FireLunarShards.projectilePrefab, aimRay.origin, Util.QuaternionSafeLookRotation(vector), self.gameObject, self.characterBody.damage * 0.05f / 12f, 0f, Util.CheckRoll(self.characterBody.crit, self.characterBody.master), DamageColorIndex.Default, null, -1f);
+                    Ray aimRay2 = self.GetAimRay();
+                    Vector3 vector2 = Util.ApplySpread(aimRay2.direction, 0f, 0f, 1f, 0f, -(float)i * 5f, 0f);
+                    ProjectileManager.instance.FireProjectile(EntityStates.BrotherMonster.Weapon.FireLunarShards.projectilePrefab, aimRay2.origin, Util.QuaternionSafeLookRotation(vector2), self.gameObject, self.characterBody.damage * 0.05f / 12f, 0f, Util.CheckRoll(self.characterBody.crit, self.characterBody.master), DamageColorIndex.Default, null, -1f);
+                }
+            }
             orig(self);
         }
 
@@ -1486,6 +1749,30 @@ namespace Inferno
             EntityStates.BrotherMonster.Weapon.FireLunarShards.spreadBloomValue = 20f;
             EntityStates.BrotherMonster.Weapon.FireLunarShards.recoilAmplitude = 2f;
             EntityStates.BrotherMonster.Weapon.FireLunarShards.baseDuration = 0.03f;
+            ShardCount++;
+            if (self is FireLunarShardsHurt)
+            {
+                if (self.isAuthority && ShardCount == 9)
+                {
+                    float waves = 3f;
+                    float SpinnyCount = 360f / waves;
+                    Vector3 plane = Vector3.ProjectOnPlane(self.inputBank.aimDirection, Vector3.up);
+                    Transform transgender = self.FindModelChild(EntityStates.BrotherMonster.WeaponSlam.muzzleString);
+                    Vector3 pos = transgender.position + new Vector3(Random.Range(-50f, 50f), 0f, Random.Range(-50f, 50f));
+                    int l = 0;
+                    while (l < waves)
+                    {
+                        Vector3 zase = Quaternion.AngleAxis(SpinnyCount * l, Vector3.up) * plane;
+                        ProjectileManager.instance.FireProjectile(EntityStates.BrotherMonster.UltChannelState.waveProjectileLeftPrefab, pos, Util.QuaternionSafeLookRotation(zase), self.gameObject, self.characterBody.damage * 3.5f, EntityStates.BrotherMonster.FistSlam.waveProjectileForce, Util.CheckRoll(self.characterBody.crit, self.characterBody.master), 0, null, -1f);
+                        l++;
+                        ShardCount = 0;
+                    }
+                }
+            }
+            else
+            {
+                ShardCount = 0;
+            }
             orig(self);
         }
 
@@ -1513,7 +1800,7 @@ namespace Inferno
                 while (l < waves)
                 {
                     Vector3 zase = Quaternion.AngleAxis(SpinnyCount * l, Vector3.up) * plane;
-                    ProjectileManager.instance.FireProjectile(EntityStates.BrotherMonster.UltChannelState.waveProjectileLeftPrefab, pos, Util.QuaternionSafeLookRotation(zase), self.gameObject, self.characterBody.damage * 2f, EntityStates.BrotherMonster.FistSlam.waveProjectileForce, Util.CheckRoll(self.characterBody.crit, self.characterBody.master), 0, null, -1f);
+                    ProjectileManager.instance.FireProjectile(EntityStates.BrotherMonster.UltChannelState.waveProjectileLeftPrefab, pos, Util.QuaternionSafeLookRotation(zase), self.gameObject, self.characterBody.damage * 3.5f, EntityStates.BrotherMonster.FistSlam.waveProjectileForce, Util.CheckRoll(self.characterBody.crit, self.characterBody.master), 0, null, -1f);
                     l++;
                 }
             }
@@ -1595,11 +1882,15 @@ namespace Inferno
                 self.characterMotor.Motor.ForceUnground();
                 self.characterMotor.velocity = a + b + b2;
             }
+            
             if (self.fixedAge > 0.5f && self.fixedAge < 2.1f)
             {
                 self.attack.Fire(null);
             }
+            
             orig(self);
+
+            // results in double hits sometimes, no idea how to fix it!
         }
 
         private static void GenericCharacterSpawnState(On.EntityStates.GenericCharacterSpawnState.orig_OnEnter orig, EntityStates.GenericCharacterSpawnState self)
@@ -1729,7 +2020,7 @@ namespace Inferno
 
         private static void ChargeFire(On.EntityStates.VoidBarnacle.Weapon.ChargeFire.orig_OnEnter orig, EntityStates.VoidBarnacle.Weapon.ChargeFire self)
         {
-            self.baseDuration = 0.7f;
+            self.baseDuration = 0.6f;
             orig(self);
         }
 
@@ -1741,7 +2032,7 @@ namespace Inferno
 
         private static void PrepTarBall(On.EntityStates.ClayBoss.PrepTarBall.orig_OnEnter orig, EntityStates.ClayBoss.PrepTarBall self)
         {
-            EntityStates.ClayBoss.PrepTarBall.baseDuration = 1.8f;
+            EntityStates.ClayBoss.PrepTarBall.baseDuration = 1.9f;
             orig(self);
         }
 
@@ -1771,8 +2062,8 @@ namespace Inferno
         private static void FirePortalBomb(On.EntityStates.NullifierMonster.FirePortalBomb.orig_OnEnter orig, EntityStates.NullifierMonster.FirePortalBomb self)
         {
             EntityStates.NullifierMonster.FirePortalBomb.baseDuration = 0.25f;
-            EntityStates.NullifierMonster.FirePortalBomb.damageCoefficient = 1.5f;
-            EntityStates.NullifierMonster.FirePortalBomb.portalBombCount = 4;
+            EntityStates.NullifierMonster.FirePortalBomb.damageCoefficient = 1.8f;
+            EntityStates.NullifierMonster.FirePortalBomb.portalBombCount = 5;
             orig(self);
         }
 
@@ -1780,7 +2071,7 @@ namespace Inferno
         {
             EntityStates.ImpMonster.DoubleSlash.selfForce = 2000f;
             EntityStates.ImpMonster.DoubleSlash.walkSpeedPenaltyCoefficient = 1.2f;
-            EntityStates.ImpMonster.DoubleSlash.damageCoefficient = 1.9f;
+            EntityStates.ImpMonster.DoubleSlash.damageCoefficient = 2.1f;
             orig(self);
         }
 
@@ -1798,7 +2089,7 @@ namespace Inferno
 
         private static void FireLaser(On.EntityStates.MajorConstruct.Weapon.FireLaser.orig_OnEnter orig, EntityStates.MajorConstruct.Weapon.FireLaser self)
         {
-            self.aimMaxSpeed = 15f;
+            self.aimMaxSpeed = 17f;
             orig(self);
         }
 
@@ -1867,6 +2158,10 @@ namespace Inferno
             if (self.rigidbody && !self.rigidbody.useGravity && self.gameObject.GetComponent<TeamFilter>().teamIndex == TeamIndex.Monster)
             {
                 self.desiredForwardSpeed *= ProjectileSpeed.Value;
+                if (self.lifetime < 4f)
+                {
+                    self.lifetime = 4f;
+                }
             }
             orig(self);
         }
@@ -1926,7 +2221,7 @@ namespace Inferno
                             {
                                 ray.origin = transform.position;
                             }
-                            var orbs = 5f;
+                            var orbs = 7f;
                             hasFired = true;
                             float orbCount = 360f / orbs;
                             Vector3 plane = Vector3.ProjectOnPlane(self.inputBank.aimDirection, Vector3.up);
@@ -1936,7 +2231,7 @@ namespace Inferno
                             while (j < orbs)
                             {
                                 Vector3 zase = Quaternion.AngleAxis(orbCount * j, Vector3.up) * plane;
-                                ProjectileManager.instance.FireProjectile(EntityStates.BrotherMonster.FistSlam.waveProjectilePrefab, pos, Util.QuaternionSafeLookRotation(zase), self.gameObject, self.characterBody.damage * EntityStates.BrotherMonster.FistSlam.waveProjectileDamageCoefficient * 0.3f, EntityStates.BrotherMonster.FistSlam.waveProjectileForce, Util.CheckRoll(self.characterBody.crit, self.characterBody.master), 0, null, -1f);
+                                ProjectileManager.instance.FireProjectile(EntityStates.BrotherMonster.FistSlam.waveProjectilePrefab, pos, Util.QuaternionSafeLookRotation(zase), self.gameObject, self.characterBody.damage * EntityStates.BrotherMonster.FistSlam.waveProjectileDamageCoefficient * 0.6f, EntityStates.BrotherMonster.FistSlam.waveProjectileForce, Util.CheckRoll(self.characterBody.crit, self.characterBody.master), 0, null, -1f);
                                 j++;
                             }
                             // i hate this code
@@ -1949,20 +2244,25 @@ namespace Inferno
 
         private static void UltChannelState(On.EntityStates.BrotherMonster.UltChannelState.orig_OnEnter orig, EntityStates.BrotherMonster.UltChannelState self)
         {
+            EntityStates.BrotherMonster.UltChannelState.totalWaves = 8;
             if (MithrixAS.Value)
             {
-                EntityStates.BrotherMonster.UltChannelState.maxDuration = 5.8f / self.attackSpeedStat;
+                EntityStates.BrotherMonster.UltChannelState.maxDuration = 8f / self.attackSpeedStat;
             }
             else
             {
-                EntityStates.BrotherMonster.UltChannelState.maxDuration = 5.8f;
+                EntityStates.BrotherMonster.UltChannelState.maxDuration = 8f;
             }
             orig(self);
         }
 
         private static void Phase3(On.EntityStates.Missions.BrotherEncounter.Phase3.orig_OnEnter orig, EntityStates.Missions.BrotherEncounter.Phase3 self)
         {
-            /*
+            Ramp1.SetActive(false);
+            Ramp2.SetActive(false);
+            Ramp3.SetActive(false);
+            Rocks.SetActive(false);
+            orig(self);
             if (NetworkServer.active)
             {
                 foreach (TeamComponent teamComponent in new List<TeamComponent>(TeamComponent.GetTeamMembers(TeamIndex.Monster)))
@@ -1972,14 +2272,22 @@ namespace Inferno
                         HealthComponent component = teamComponent.GetComponent<HealthComponent>();
                         if (component)
                         {
-                            component.Suicide(null, null, DamageType.Generic);
+                            switch (teamComponent.body.name)
+                            {
+                                case "LunarExploderBody(Clone)":
+                                    component.Suicide(null, null, DamageType.Generic);
+                                    break;
+                                case "LunarGolemBody(Clone)":
+                                    component.Suicide(null, null, DamageType.Generic);
+                                    break;
+                                case "LunarWispBody(Clone)":
+                                    component.Suicide(null, null, DamageType.Generic);
+                                    break;
+                            }
                         }
                     }
                 }
             }
-            // fucking hell ofc copied code from phase 4 start doesnt work
-            */
-            orig(self);
         }
 
         private static void CleanupPillar(On.EntityStates.BrotherMonster.WeaponSlam.orig_OnEnter orig, EntityStates.BrotherMonster.WeaponSlam self)
@@ -2054,14 +2362,17 @@ namespace Inferno
             if (sender && sender.teamComponent && sender.teamComponent.teamIndex == TeamIndex.Monster)
             {
                 args.armorAdd += LoopArmor.Value * Run.instance.loopClearCount;
-            }
-            if (sender && sender.teamComponent && sender.teamComponent.teamIndex == TeamIndex.Monster && sender.isBoss)
-            {
-                args.healthMultAdd += BossHp.Value * Run.instance.stageClearCount;
-            }
-            if (sender && sender.teamComponent && sender.teamComponent.teamIndex == TeamIndex.Monster && !sender.isBoss && !sender.isChampion)
-            {
-                args.healthMultAdd += MonsterHp.Value * Run.instance.stageClearCount;
+                args.cooldownMultAdd += StageCooldownReduction.Value * Run.instance.stageClearCount;
+
+                if (sender.isBoss || sender.isChampion)
+                {
+                    args.healthMultAdd += BossHp.Value * Run.instance.stageClearCount;
+                }
+
+                if (!sender.isBoss && !sender.isChampion)
+                {
+                    args.healthMultAdd += MonsterHp.Value * Run.instance.stageClearCount;
+                }
             }
         }
 
@@ -2201,6 +2512,43 @@ namespace Inferno
         }
     }
 
+    public class InfernoPermanentDamage : MonoBehaviour, IOnTakeDamageServerReceiver
+    {
+        public HealthComponent hc;
+        public CharacterBody body;
+
+        public void Start()
+        {
+            hc = GetComponent<HealthComponent>();
+            if (!hc)
+            {
+                Object.Destroy(this);
+                return;
+            }
+            body = hc.body;
+        }
+
+        public void OnTakeDamageServer(DamageReport damageReport)
+        {
+            if (body)
+            {
+                switch (body.teamComponent.teamIndex)
+                {
+                    case TeamIndex.Player:
+                        {
+                            float takenDamagePercent = damageReport.damageDealt / hc.fullCombinedHealth * 100f;
+                            int permanentDamage = Mathf.FloorToInt(takenDamagePercent * Main.AllyPermanentDamage.Value / 100f);
+                            for (int l = 0; l < permanentDamage; l++)
+                            {
+                                body.AddBuff(RoR2Content.Buffs.PermanentCurse);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
     public static class RiskyModCompat
     {
         private static bool? _enabled;
@@ -2214,6 +2562,165 @@ namespace Inferno
                     _enabled = BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.RiskyLives.RiskyMod");
                 }
                 return (bool)_enabled;
+            }
+        }
+    }
+
+    public static class Items
+    {
+        const string PrimaryStockItemName = "Inferno: +1 Primary Stock";
+        const string PrimaryStockItemLangTokenName = "INFERNO_PRIMARYSTOCK";
+        const string PrimaryStockItemPickupDesc = "Racecar";
+        const string PrimaryStockItemFullDescription = "15:21";
+
+        const string SecondaryStockItemName = "Inferno: +1 Secondary Stock";
+        const string SecondaryStockItemLangTokenName = "INFERNO_SECONDARYSTOCK";
+        const string SecondaryStockItemPickupDesc = "Omega";
+        const string SecondaryStockItemFullDescription = "11:44";
+
+        const string UtilityStockItemName = "Inferno: +1 Utility Stock";
+        const string UtilityStockItemLangTokenName = "INFERNO_UTILITYSTOCK";
+        const string UtilityStockItemPickupDesc = "Reptile";
+        const string UtilityStockItemFullDescription = "16:44";
+
+        const string SpecialStockItemName = "Inferno: +1 Special Stock";
+        const string SpecialStockItemLangTokenName = "INFERNO_SPECIALSTOCK";
+        const string SpecialStockItemPickupDesc = "Periphery V When";
+        const string SpecialStockItemFullDescription = "??:??";
+
+        const string AllCooldownItemName = "Inferno: +1% All CDR";
+        const string AllCooldownItemLangTokenName = "INFERNO_ALLCDR";
+        const string AllCooldownItemPickupDesc = "Periphery VI When";
+        const string AllCooldownItemFullDescription = "???:???";
+
+
+        public static ItemTier Tier;
+        public static ItemTag[] ItemTags { get; set; } = new ItemTag[] { };
+
+        public static ItemDef PrimaryStockItemDef;
+        public static ItemDef SecondaryStockItemDef;
+        public static ItemDef UtilityStockItemDef;
+        public static ItemDef SpecialStockItemDef;
+        public static ItemDef AllCooldownItemDef;
+
+        public static void Create()
+        {
+            ItemTags = new List<ItemTag>(ItemTags) { ItemTag.AIBlacklist }.ToArray();
+            Tier = ItemTier.NoTier;
+
+            PrimaryStockItemDef = ScriptableObject.CreateInstance<ItemDef>();
+            PrimaryStockItemDef.name = "ITEM_" + PrimaryStockItemLangTokenName;
+            PrimaryStockItemDef.nameToken = "ITEM_" + PrimaryStockItemLangTokenName + "_NAME";
+            PrimaryStockItemDef.pickupToken = "ITEM_" + PrimaryStockItemLangTokenName + "_PICKUP";
+            PrimaryStockItemDef.descriptionToken = "ITEM_" + PrimaryStockItemLangTokenName + "_DESCRIPTION";
+            PrimaryStockItemDef.hidden = true;
+            PrimaryStockItemDef.tags = ItemTags;
+            PrimaryStockItemDef.deprecatedTier = Tier;
+
+            LanguageAPI.Add("ITEM_" + PrimaryStockItemLangTokenName + "_NAME", PrimaryStockItemName);
+            LanguageAPI.Add("ITEM_" + PrimaryStockItemLangTokenName + "_PICKUP", PrimaryStockItemPickupDesc);
+            LanguageAPI.Add("ITEM_" + PrimaryStockItemLangTokenName + "_DESCRIPTION", PrimaryStockItemFullDescription);
+
+            ContentAddition.AddItemDef(PrimaryStockItemDef);
+
+            SecondaryStockItemDef = ScriptableObject.CreateInstance<ItemDef>();
+            SecondaryStockItemDef.name = "ITEM_" + SecondaryStockItemLangTokenName;
+            SecondaryStockItemDef.nameToken = "ITEM_" + SecondaryStockItemLangTokenName + "_NAME";
+            SecondaryStockItemDef.pickupToken = "ITEM_" + SecondaryStockItemLangTokenName + "_PICKUP";
+            SecondaryStockItemDef.descriptionToken = "ITEM_" + SecondaryStockItemLangTokenName + "_DESCRIPTION";
+            SecondaryStockItemDef.hidden = true;
+            SecondaryStockItemDef.tags = ItemTags;
+            SecondaryStockItemDef.deprecatedTier = Tier;
+
+            LanguageAPI.Add("ITEM_" + SecondaryStockItemLangTokenName + "_NAME", SecondaryStockItemName);
+            LanguageAPI.Add("ITEM_" + SecondaryStockItemLangTokenName + "_PICKUP", SecondaryStockItemPickupDesc);
+            LanguageAPI.Add("ITEM_" + SecondaryStockItemLangTokenName + "_DESCRIPTION", SecondaryStockItemFullDescription);
+
+            ContentAddition.AddItemDef(SecondaryStockItemDef);
+
+            UtilityStockItemDef = ScriptableObject.CreateInstance<ItemDef>();
+            UtilityStockItemDef.name = "ITEM_" + UtilityStockItemLangTokenName;
+            UtilityStockItemDef.nameToken = "ITEM_" + UtilityStockItemLangTokenName + "_NAME";
+            UtilityStockItemDef.pickupToken = "ITEM_" + UtilityStockItemLangTokenName + "_PICKUP";
+            UtilityStockItemDef.descriptionToken = "ITEM_" + UtilityStockItemLangTokenName + "_DESCRIPTION";
+            UtilityStockItemDef.hidden = true;
+            UtilityStockItemDef.tags = ItemTags;
+            UtilityStockItemDef.deprecatedTier = Tier;
+
+            LanguageAPI.Add("ITEM_" + UtilityStockItemLangTokenName + "_NAME", UtilityStockItemName);
+            LanguageAPI.Add("ITEM_" + UtilityStockItemLangTokenName + "_PICKUP", UtilityStockItemPickupDesc);
+            LanguageAPI.Add("ITEM_" + UtilityStockItemLangTokenName + "_DESCRIPTION", UtilityStockItemFullDescription);
+
+            ContentAddition.AddItemDef(UtilityStockItemDef);
+
+            SpecialStockItemDef = ScriptableObject.CreateInstance<ItemDef>();
+            SpecialStockItemDef.name = "ITEM_" + SpecialStockItemLangTokenName;
+            SpecialStockItemDef.nameToken = "ITEM_" + SpecialStockItemLangTokenName + "_NAME";
+            SpecialStockItemDef.pickupToken = "ITEM_" + SpecialStockItemLangTokenName + "_PICKUP";
+            SpecialStockItemDef.descriptionToken = "ITEM_" + SpecialStockItemLangTokenName + "_DESCRIPTION";
+            SpecialStockItemDef.hidden = true;
+            SpecialStockItemDef.tags = ItemTags;
+            SpecialStockItemDef.deprecatedTier = Tier;
+
+            LanguageAPI.Add("ITEM_" + SpecialStockItemLangTokenName + "_NAME", SpecialStockItemName);
+            LanguageAPI.Add("ITEM_" + SpecialStockItemLangTokenName + "_PICKUP", SpecialStockItemPickupDesc);
+            LanguageAPI.Add("ITEM_" + SpecialStockItemLangTokenName + "_DESCRIPTION", SpecialStockItemFullDescription);
+
+            ContentAddition.AddItemDef(SpecialStockItemDef);
+
+            AllCooldownItemDef = ScriptableObject.CreateInstance<ItemDef>();
+            AllCooldownItemDef.name = "ITEM_" + AllCooldownItemLangTokenName;
+            AllCooldownItemDef.nameToken = "ITEM_" + AllCooldownItemLangTokenName + "_NAME";
+            AllCooldownItemDef.pickupToken = "ITEM_" + AllCooldownItemLangTokenName + "_PICKUP";
+            AllCooldownItemDef.descriptionToken = "ITEM_" + AllCooldownItemLangTokenName + "_DESCRIPTION";
+            AllCooldownItemDef.hidden = true;
+            AllCooldownItemDef.tags = ItemTags;
+            AllCooldownItemDef.deprecatedTier = Tier;
+
+            LanguageAPI.Add("ITEM_" + AllCooldownItemLangTokenName + "_NAME", AllCooldownItemName);
+            LanguageAPI.Add("ITEM_" + AllCooldownItemLangTokenName + "_PICKUP", AllCooldownItemPickupDesc);
+            LanguageAPI.Add("ITEM_" + AllCooldownItemLangTokenName + "_DESCRIPTION", AllCooldownItemFullDescription);
+
+            ContentAddition.AddItemDef(AllCooldownItemDef);
+
+            On.RoR2.CharacterBody.RecalculateStats += AddStock;
+            RecalculateStatsAPI.GetStatCoefficients += ChangeCDR;
+        }
+
+        private static void ChangeCDR(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            if (sender && sender.inventory)
+            {
+                var stack = sender.inventory.GetItemCount(AllCooldownItemDef);
+                if (stack > 0)
+                {
+                    args.cooldownMultAdd -= 0.01f * stack;
+                }
+            }
+        }
+
+        private static void AddStock(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody self)
+        {
+            orig(self);
+            if (self && self.inventory && self.skillLocator)
+            {
+                var sl = self.skillLocator;
+                if (sl.primary)
+                {
+                    sl.primary.SetBonusStockFromBody(sl.primary.bonusStockFromBody + self.inventory.GetItemCount(PrimaryStockItemDef));
+                }
+                if (sl.secondary)
+                {
+                    sl.secondary.SetBonusStockFromBody(sl.secondary.bonusStockFromBody + self.inventory.GetItemCount(SecondaryStockItemDef));
+                }
+                if (sl.utility)
+                {
+                    sl.utility.SetBonusStockFromBody(sl.utility.bonusStockFromBody + self.inventory.GetItemCount(UtilityStockItemDef));
+                }
+                if (sl.special)
+                {
+                    sl.special.SetBonusStockFromBody(sl.special.bonusStockFromBody + self.inventory.GetItemCount(SpecialStockItemDef));
+                }
             }
         }
     }
