@@ -134,52 +134,58 @@ namespace Inferno.Stat_AI
                     break;
 
                 case "BrotherMaster(Clone)":
-                    AISkillDriver MithrixFireShards = (from x in masterm.GetComponents<AISkillDriver>()
-                                                       where x.customName == "Sprint and FireLunarShards"
+                    if (Main.EnableMithrixChanges.Value)
+                    {
+                        AISkillDriver MithrixFireShards = (from x in masterm.GetComponents<AISkillDriver>()
+                                                           where x.customName == "Sprint and FireLunarShards"
+                                                           select x).First();
+                        MithrixFireShards.minDistance = 0f;
+                        MithrixFireShards.maxUserHealthFraction = Mathf.Infinity;
+
+                        AISkillDriver MithrixSprint = (from x in masterm.GetComponents<AISkillDriver>()
+                                                       where x.customName == "Sprint After Target"
                                                        select x).First();
-                    MithrixFireShards.minDistance = 0f;
-                    MithrixFireShards.maxUserHealthFraction = Mathf.Infinity;
+                        MithrixSprint.minDistance = 40f - (Main.AIScaling.Value * Run.instance.stageClearCount);
 
-                    AISkillDriver MithrixSprint = (from x in masterm.GetComponents<AISkillDriver>()
-                                                   where x.customName == "Sprint After Target"
-                                                   select x).First();
-                    MithrixSprint.minDistance = 40f - (Main.AIScaling.Value * Run.instance.stageClearCount);
+                        /*
+                        AISkillDriver DashForward = (from x in masterm.GetComponents<AISkillDriver>()
+                                                     where x.customName == "DashForward"
+                                                     select x).First();
+                        DashForward.minDistance = 30f;
+                        DashForward.maxDistance = 45f;
+                        */
 
-                    /*
-                    AISkillDriver DashForward = (from x in masterm.GetComponents<AISkillDriver>()
-                                                 where x.customName == "DashForward"
-                                                 select x).First();
-                    DashForward.minDistance = 30f;
-                    DashForward.maxDistance = 45f;
-                    */
+                        AISkillDriver DashStrafe = (from x in masterm.GetComponents<AISkillDriver>()
+                                                    where x.customName == "DashStrafe"
+                                                    select x).First();
+                        // DashStrafe.maxDistance = 30f;
+                        DashStrafe.nextHighPriorityOverride = MithrixFireShards;
 
-                    AISkillDriver DashStrafe = (from x in masterm.GetComponents<AISkillDriver>()
-                                                where x.customName == "DashStrafe"
-                                                select x).First();
-                    // DashStrafe.maxDistance = 30f;
-                    DashStrafe.nextHighPriorityOverride = MithrixFireShards;
+                        //master.inventory.GiveItem(Items.PrimaryStockItemDef, 1);
+                        master.inventory.GiveItem(Items.UtilityStockItemDef, 1);
+                        master.inventory.GiveItem(Items.SpecialStockItemDef, 1);
+                        master.inventory.GiveItem(Items.AllCooldownItemDef, 10);
+                    }
 
-
-                    //master.inventory.GiveItem(Items.PrimaryStockItemDef, 1);
-                    master.inventory.GiveItem(Items.UtilityStockItemDef, 1);
-                    master.inventory.GiveItem(Items.SpecialStockItemDef, 1);
-                    master.inventory.GiveItem(Items.AllCooldownItemDef, 10);
                     break;
 
                 case "BrotherHurtMaster(Clone)":
-                    AISkillDriver MithrixWeakSlam = (from x in masterm.GetComponents<AISkillDriver>()
-                                                     where x.customName == "SlamGround"
-                                                     select x).First();
-                    MithrixWeakSlam.maxUserHealthFraction = Mathf.Infinity;
-                    MithrixWeakSlam.movementType = AISkillDriver.MovementType.StrafeMovetarget;
+                    if (Main.EnableMithrixChanges.Value)
+                    {
+                        AISkillDriver MithrixWeakSlam = (from x in masterm.GetComponents<AISkillDriver>()
+                                                         where x.customName == "SlamGround"
+                                                         select x).First();
+                        MithrixWeakSlam.maxUserHealthFraction = Mathf.Infinity;
+                        MithrixWeakSlam.movementType = AISkillDriver.MovementType.StrafeMovetarget;
 
-                    AISkillDriver MithrixWeakShards = (from x in masterm.GetComponents<AISkillDriver>()
-                                                       where x.customName == "Shoot"
-                                                       select x).First();
-                    MithrixWeakShards.movementType = AISkillDriver.MovementType.StrafeMovetarget;
-                    // CreateDrivers(master);
-                    master.inventory.GiveItem(Items.PrimaryStockItemDef, 6);
-                    master.inventory.GiveItem(Items.AllCooldownItemDef, 5);
+                        AISkillDriver MithrixWeakShards = (from x in masterm.GetComponents<AISkillDriver>()
+                                                           where x.customName == "Shoot"
+                                                           select x).First();
+                        MithrixWeakShards.movementType = AISkillDriver.MovementType.StrafeMovetarget;
+                        // CreateDrivers(master);
+                        master.inventory.GiveItem(Items.PrimaryStockItemDef, 6);
+                        master.inventory.GiveItem(Items.AllCooldownItemDef, 5);
+                    }
                     break;
 
                 case "TitanMaster(Clone)":
@@ -466,6 +472,7 @@ namespace Inferno.Stat_AI
                     //master.inventory.GiveItem(RoR2Content.Items.AlienHead, 1);
                     master.inventory.GiveItem(Items.AllCooldownItemDef, 33);
                     break;
+
                 case "RoboBallBossMaster(Clone)":
                     AISkillDriver EnableEyebeam = (from x in masterm.GetComponents<AISkillDriver>()
                                                    where x.skillSlot == SkillSlot.Special
@@ -473,6 +480,7 @@ namespace Inferno.Stat_AI
                     EnableEyebeam.maxUserHealthFraction = 0.5f;
                     master.inventory.GiveItem(Items.PrimaryStockItemDef, 1);
                     break;
+
                 case "ScavMaster(Clone)":
                     AISkillDriver Sit = (from x in masterm.GetComponents<AISkillDriver>()
                                          where x.customName == "Sit"
@@ -491,12 +499,14 @@ namespace Inferno.Stat_AI
                                                                select x).First();
                     UseEquipmentAndFireCannon.maxDistance = 100f;
                     break;
+
                 case "VoidBarnacleMaster(Clone)":
                     AISkillDriver Shooty = (from x in masterm.GetComponents<AISkillDriver>()
                                             where x.customName == "Shooty"
                                             select x).First();
                     Shooty.maxDistance = 100f;
                     break;
+
                 case "SuperRoboBallBossMaster(Clone)":
                     AISkillDriver FireAndStop = (from x in masterm.GetComponents<AISkillDriver>()
                                                  where x.customName == "FireAndStop"

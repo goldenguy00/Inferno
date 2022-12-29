@@ -10,7 +10,6 @@ using UnityEngine;
 using RoR2.Projectile;
 using Random = UnityEngine.Random;
 using EntityStates.BrotherMonster.Weapon;
-using UnityEngine.AddressableAssets;
 
 namespace Inferno.Skill_Misc
 {
@@ -32,7 +31,7 @@ namespace Inferno.Skill_Misc
 
         public static void SlideIntroState(On.EntityStates.BrotherMonster.SlideIntroState.orig_OnEnter orig, EntityStates.BrotherMonster.SlideIntroState self)
         {
-            if (self.isAuthority)
+            if (self.isAuthority && Main.EnableMithrixChanges.Value)
             {
                 Ray aimRay = self.GetAimRay();
                 for (int i = 0; i < 6; i++)
@@ -46,7 +45,7 @@ namespace Inferno.Skill_Misc
 
         public static void FireWave(On.EntityStates.BrotherMonster.UltChannelState.orig_FireWave orig, EntityStates.BrotherMonster.UltChannelState self)
         {
-            if (self.isAuthority)
+            if (self.isAuthority && Main.EnableMithrixChanges.Value)
             {
                 float waves = 4f;
                 float SpinnyCount = 360f / waves;
@@ -90,10 +89,14 @@ namespace Inferno.Skill_Misc
 
         public static void Phase1(On.EntityStates.Missions.BrotherEncounter.Phase1.orig_OnEnter orig, EntityStates.Missions.BrotherEncounter.Phase1 self)
         {
-            Main.Ramp1.SetActive(false);
-            Main.Ramp2.SetActive(false);
-            Main.Ramp3.SetActive(false);
-            Main.Rocks.SetActive(false);
+            if (Main.EnableMithrixChanges.Value)
+            {
+                Main.Ramp1.SetActive(false);
+                Main.Ramp2.SetActive(false);
+                Main.Ramp3.SetActive(false);
+                Main.Rocks.SetActive(false);
+            }
+
             orig(self);
         }
 
@@ -112,10 +115,14 @@ namespace Inferno.Skill_Misc
 
         public static void Phase4(On.EntityStates.Missions.BrotherEncounter.Phase4.orig_OnEnter orig, EntityStates.Missions.BrotherEncounter.Phase4 self)
         {
-            Main.Ramp1.SetActive(false);
-            Main.Ramp2.SetActive(false);
-            Main.Ramp3.SetActive(false);
-            Main.Rocks.SetActive(false);
+            if (Main.EnableMithrixChanges.Value)
+            {
+                Main.Ramp1.SetActive(false);
+                Main.Ramp2.SetActive(false);
+                Main.Ramp3.SetActive(false);
+                Main.Rocks.SetActive(false);
+            }
+
             orig(self);
         }
 
@@ -208,30 +215,49 @@ namespace Inferno.Skill_Misc
 
         public static void HoldSkyLeap(On.EntityStates.BrotherMonster.HoldSkyLeap.orig_OnEnter orig, EntityStates.BrotherMonster.HoldSkyLeap self)
         {
-            if (Main.MithrixAS.Value)
+            if (Main.EnableMithrixChanges.Value)
             {
-                EntityStates.BrotherMonster.HoldSkyLeap.duration = 2f / self.attackSpeedStat;
-            }
-            else
-            {
-                EntityStates.BrotherMonster.HoldSkyLeap.duration = 2f;
-            }
-            if (NetworkServer.active)
-            {
-                Util.CleanseBody(self.characterBody, true, false, false, true, true, false);
+                if (Main.MithrixAS.Value)
+                {
+                    EntityStates.BrotherMonster.HoldSkyLeap.duration = 2f / self.attackSpeedStat;
+                }
+                else
+                {
+                    EntityStates.BrotherMonster.HoldSkyLeap.duration = 2f;
+                }
+                if (NetworkServer.active)
+                {
+                    Util.CleanseBody(self.characterBody, true, false, false, true, true, false);
+                }
             }
             orig(self);
         }
 
         public static void ExitSkyLeap(On.EntityStates.BrotherMonster.ExitSkyLeap.orig_OnEnter orig, EntityStates.BrotherMonster.ExitSkyLeap self)
         {
-            EntityStates.BrotherMonster.ExitSkyLeap.waveProjectileCount = 20;
-            EntityStates.BrotherMonster.ExitSkyLeap.waveProjectileDamageCoefficient = 2f;
+            if (Main.EnableMithrixChanges.Value)
+            {
+                EntityStates.BrotherMonster.ExitSkyLeap.waveProjectileCount = 20;
+                EntityStates.BrotherMonster.ExitSkyLeap.waveProjectileDamageCoefficient = 2f;
+            }
             orig(self);
         }
 
         public static void WeaponSlam(On.EntityStates.BrotherMonster.WeaponSlam.orig_OnEnter orig, EntityStates.BrotherMonster.WeaponSlam self)
         {
+            if (Main.EnableMithrixChanges.Value)
+            {
+                EntityStates.BrotherMonster.WeaponSlam.waveProjectileArc = 360f;
+                EntityStates.BrotherMonster.WeaponSlam.waveProjectileCount = 8;
+                EntityStates.BrotherMonster.WeaponSlam.waveProjectileDamageCoefficient = 2f;
+                EntityStates.BrotherMonster.WeaponSlam.waveProjectileForce = -1600f;
+                EntityStates.BrotherMonster.WeaponSlam.weaponForce = -2300f;
+                var pillarprefab = EntityStates.BrotherMonster.WeaponSlam.pillarProjectilePrefab;
+                pillarprefab.transform.localScale = new Vector3(4f, 4f, 4f);
+                var ghost = pillarprefab.GetComponent<ProjectileController>().ghostPrefab;
+                ghost.transform.localScale = new Vector3(4f, 4f, 4f);
+                Main.hasFired = false;
+            }
             if (Main.MithrixAS.Value)
             {
                 EntityStates.BrotherMonster.WeaponSlam.duration = 3f / self.attackSpeedStat;
@@ -240,82 +266,127 @@ namespace Inferno.Skill_Misc
             {
                 EntityStates.BrotherMonster.WeaponSlam.duration = 3f;
             }
-            EntityStates.BrotherMonster.WeaponSlam.waveProjectileArc = 360f;
-            EntityStates.BrotherMonster.WeaponSlam.waveProjectileCount = 8;
-            EntityStates.BrotherMonster.WeaponSlam.waveProjectileDamageCoefficient = 2f;
-            EntityStates.BrotherMonster.WeaponSlam.waveProjectileForce = -1600f;
-            EntityStates.BrotherMonster.WeaponSlam.weaponForce = -2300f;
-            var pillarprefab = EntityStates.BrotherMonster.WeaponSlam.pillarProjectilePrefab;
-            pillarprefab.transform.localScale = new Vector3(4f, 4f, 4f);
-            var ghost = pillarprefab.GetComponent<ProjectileController>().ghostPrefab;
-            ghost.transform.localScale = new Vector3(4f, 4f, 4f);
-            Main.hasFired = false;
+
             orig(self);
         }
 
         public static void BaseSlideState(On.EntityStates.BrotherMonster.BaseSlideState.orig_OnEnter orig, EntityStates.BrotherMonster.BaseSlideState self)
         {
-            if (Main.MithrixAS.Value)
+            if (Main.EnableMithrixChanges.Value)
             {
-                EntityStates.BrotherMonster.BaseSlideState.duration /= self.attackSpeedStat;
-            }
-            switch (self)
-            {
-                case EntityStates.BrotherMonster.SlideBackwardState:
-                    self.slideRotation = Quaternion.identity;
-                    break;
+                if (Main.MithrixAS.Value)
+                {
+                    EntityStates.BrotherMonster.BaseSlideState.duration /= self.attackSpeedStat;
+                }
+                switch (self)
+                {
+                    case EntityStates.BrotherMonster.SlideBackwardState:
+                        self.slideRotation = Quaternion.identity;
+                        break;
 
-                case EntityStates.BrotherMonster.SlideLeftState:
-                    self.slideRotation = Quaternion.AngleAxis(-40f, Vector3.up);
-                    break;
+                    case EntityStates.BrotherMonster.SlideLeftState:
+                        self.slideRotation = Quaternion.AngleAxis(-40f, Vector3.up);
+                        break;
 
-                case EntityStates.BrotherMonster.SlideRightState:
-                    self.slideRotation = Quaternion.AngleAxis(40f, Vector3.up);
-                    break;
+                    case EntityStates.BrotherMonster.SlideRightState:
+                        self.slideRotation = Quaternion.AngleAxis(40f, Vector3.up);
+                        break;
+                }
             }
+
             orig(self);
         }
 
         public static void SprintBash(On.EntityStates.BrotherMonster.SprintBash.orig_OnEnter orig, EntityStates.BrotherMonster.SprintBash self)
         {
-            EntityStates.BrotherMonster.SprintBash.durationBeforePriorityReduces = 0.18f;
-            if (Main.MithrixAS.Value)
+            if (Main.EnableMithrixChanges.Value)
             {
-                self.baseDuration = 1.4f / self.attackSpeedStat;
-            }
-            else
-            {
-                self.baseDuration = 1.4f;
-            }
-            self.damageCoefficient = 1.5f;
-            self.pushAwayForce = 1500f;
-            self.forceVector = new Vector3(0f, 750f, 0f);
-            if (self.isAuthority)
-            {
-                for (int i = 0; i < 6; i++)
+                EntityStates.BrotherMonster.SprintBash.durationBeforePriorityReduces = 0.18f;
+                if (Main.MithrixAS.Value)
                 {
-                    Ray aimRay = self.GetAimRay();
-                    Vector3 vector = Util.ApplySpread(aimRay.direction, 0f, 0f, 1f, 0f, (float)i * 5f, 0f);
-                    ProjectileManager.instance.FireProjectile(EntityStates.BrotherMonster.Weapon.FireLunarShards.projectilePrefab, aimRay.origin, Util.QuaternionSafeLookRotation(vector), self.gameObject, self.characterBody.damage * 0.05f / 12f, 0f, Util.CheckRoll(self.characterBody.crit, self.characterBody.master), DamageColorIndex.Default, null, -1f);
-                    Ray aimRay2 = self.GetAimRay();
-                    Vector3 vector2 = Util.ApplySpread(aimRay2.direction, 0f, 0f, 1f, 0f, -(float)i * 5f, 0f);
-                    ProjectileManager.instance.FireProjectile(EntityStates.BrotherMonster.Weapon.FireLunarShards.projectilePrefab, aimRay2.origin, Util.QuaternionSafeLookRotation(vector2), self.gameObject, self.characterBody.damage * 0.05f / 12f, 0f, Util.CheckRoll(self.characterBody.crit, self.characterBody.master), DamageColorIndex.Default, null, -1f);
+                    self.baseDuration = 1.4f / self.attackSpeedStat;
+                }
+                else
+                {
+                    self.baseDuration = 1.4f;
+                }
+                self.damageCoefficient = 1.5f;
+                self.pushAwayForce = 1500f;
+                self.forceVector = new Vector3(0f, 750f, 0f);
+                if (self.isAuthority)
+                {
+                    for (int i = 0; i < 6; i++)
+                    {
+                        Ray aimRay = self.GetAimRay();
+                        Vector3 vector = Util.ApplySpread(aimRay.direction, 0f, 0f, 1f, 0f, (float)i * 5f, 0f);
+                        ProjectileManager.instance.FireProjectile(EntityStates.BrotherMonster.Weapon.FireLunarShards.projectilePrefab, aimRay.origin, Util.QuaternionSafeLookRotation(vector), self.gameObject, self.characterBody.damage * 0.05f / 12f, 0f, Util.CheckRoll(self.characterBody.crit, self.characterBody.master), DamageColorIndex.Default, null, -1f);
+                        Ray aimRay2 = self.GetAimRay();
+                        Vector3 vector2 = Util.ApplySpread(aimRay2.direction, 0f, 0f, 1f, 0f, -(float)i * 5f, 0f);
+                        ProjectileManager.instance.FireProjectile(EntityStates.BrotherMonster.Weapon.FireLunarShards.projectilePrefab, aimRay2.origin, Util.QuaternionSafeLookRotation(vector2), self.gameObject, self.characterBody.damage * 0.05f / 12f, 0f, Util.CheckRoll(self.characterBody.crit, self.characterBody.master), DamageColorIndex.Default, null, -1f);
+                    }
                 }
             }
+
             orig(self);
         }
 
         public static void FireLunarShards(On.EntityStates.BrotherMonster.Weapon.FireLunarShards.orig_OnEnter orig, EntityStates.BrotherMonster.Weapon.FireLunarShards self)
         {
-            EntityStates.BrotherMonster.Weapon.FireLunarShards.spreadBloomValue = 20f;
-            EntityStates.BrotherMonster.Weapon.FireLunarShards.recoilAmplitude = 2f;
-            EntityStates.BrotherMonster.Weapon.FireLunarShards.baseDuration = 0.03f;
-            Main.ShardCount++;
-            if (self is FireLunarShardsHurt)
+            if (Main.EnableMithrixChanges.Value)
             {
-                if (self.isAuthority && Main.ShardCount == 9)
+                EntityStates.BrotherMonster.Weapon.FireLunarShards.spreadBloomValue = 20f;
+                EntityStates.BrotherMonster.Weapon.FireLunarShards.recoilAmplitude = 2f;
+                EntityStates.BrotherMonster.Weapon.FireLunarShards.baseDuration = 0.03f;
+                Main.ShardCount++;
+                if (self is FireLunarShardsHurt)
                 {
-                    float waves = 3f;
+                    if (self.isAuthority && Main.ShardCount == 9)
+                    {
+                        float waves = 3f;
+                        float SpinnyCount = 360f / waves;
+                        Vector3 plane = Vector3.ProjectOnPlane(self.inputBank.aimDirection, Vector3.up);
+                        Transform transgender = self.FindModelChild(EntityStates.BrotherMonster.WeaponSlam.muzzleString);
+                        Vector3 pos = transgender.position + new Vector3(Random.Range(-50f, 50f), 0f, Random.Range(-50f, 50f));
+                        int l = 0;
+                        while (l < waves)
+                        {
+                            Vector3 zase = Quaternion.AngleAxis(SpinnyCount * l, Vector3.up) * plane;
+                            ProjectileManager.instance.FireProjectile(EntityStates.BrotherMonster.UltChannelState.waveProjectileLeftPrefab, pos, Util.QuaternionSafeLookRotation(zase), self.gameObject, self.characterBody.damage * 3.5f, EntityStates.BrotherMonster.FistSlam.waveProjectileForce, Util.CheckRoll(self.characterBody.crit, self.characterBody.master), 0, null, -1f);
+                            l++;
+                            Main.ShardCount = 0;
+                        }
+                    }
+                }
+                else
+                {
+                    Main.ShardCount = 0;
+                }
+            }
+
+            orig(self);
+        }
+
+        public static void Phase2(On.EntityStates.Missions.BrotherEncounter.Phase2.orig_OnEnter orig, EntityStates.Missions.BrotherEncounter.Phase2 self)
+        {
+            orig(self);
+            if (Main.EnableMithrixChanges.Value)
+            {
+                self.PreEncounterBegin();
+                self.outer.SetNextState(new EntityStates.Missions.BrotherEncounter.Phase3());
+            }
+        }
+
+        public static void FistSlam(On.EntityStates.BrotherMonster.FistSlam.orig_OnEnter orig, EntityStates.BrotherMonster.FistSlam self)
+        {
+            if (Main.EnableMithrixChanges.Value)
+            {
+                EntityStates.BrotherMonster.FistSlam.waveProjectileDamageCoefficient = 2.3f;
+                EntityStates.BrotherMonster.FistSlam.healthCostFraction = 0f;
+                EntityStates.BrotherMonster.FistSlam.waveProjectileCount = 20;
+                EntityStates.BrotherMonster.FistSlam.baseDuration = 3.5f;
+                if (self.isAuthority)
+                {
+                    float waves = 8f;
                     float SpinnyCount = 360f / waves;
                     Vector3 plane = Vector3.ProjectOnPlane(self.inputBank.aimDirection, Vector3.up);
                     Transform transgender = self.FindModelChild(EntityStates.BrotherMonster.WeaponSlam.muzzleString);
@@ -326,99 +397,96 @@ namespace Inferno.Skill_Misc
                         Vector3 zase = Quaternion.AngleAxis(SpinnyCount * l, Vector3.up) * plane;
                         ProjectileManager.instance.FireProjectile(EntityStates.BrotherMonster.UltChannelState.waveProjectileLeftPrefab, pos, Util.QuaternionSafeLookRotation(zase), self.gameObject, self.characterBody.damage * 3.5f, EntityStates.BrotherMonster.FistSlam.waveProjectileForce, Util.CheckRoll(self.characterBody.crit, self.characterBody.master), 0, null, -1f);
                         l++;
-                        Main.ShardCount = 0;
                     }
                 }
             }
-            else
-            {
-                Main.ShardCount = 0;
-            }
-            orig(self);
-        }
 
-        public static void Phase2(On.EntityStates.Missions.BrotherEncounter.Phase2.orig_OnEnter orig, EntityStates.Missions.BrotherEncounter.Phase2 self)
-        {
-            orig(self);
-            self.PreEncounterBegin();
-            self.outer.SetNextState(new EntityStates.Missions.BrotherEncounter.Phase3());
-        }
-
-        public static void FistSlam(On.EntityStates.BrotherMonster.FistSlam.orig_OnEnter orig, EntityStates.BrotherMonster.FistSlam self)
-        {
-            EntityStates.BrotherMonster.FistSlam.waveProjectileDamageCoefficient = 2.3f;
-            EntityStates.BrotherMonster.FistSlam.healthCostFraction = 0f;
-            EntityStates.BrotherMonster.FistSlam.waveProjectileCount = 20;
-            EntityStates.BrotherMonster.FistSlam.baseDuration = 3.5f;
-            if (self.isAuthority)
-            {
-                float waves = 8f;
-                float SpinnyCount = 360f / waves;
-                Vector3 plane = Vector3.ProjectOnPlane(self.inputBank.aimDirection, Vector3.up);
-                Transform transgender = self.FindModelChild(EntityStates.BrotherMonster.WeaponSlam.muzzleString);
-                Vector3 pos = transgender.position + new Vector3(Random.Range(-50f, 50f), 0f, Random.Range(-50f, 50f));
-                int l = 0;
-                while (l < waves)
-                {
-                    Vector3 zase = Quaternion.AngleAxis(SpinnyCount * l, Vector3.up) * plane;
-                    ProjectileManager.instance.FireProjectile(EntityStates.BrotherMonster.UltChannelState.waveProjectileLeftPrefab, pos, Util.QuaternionSafeLookRotation(zase), self.gameObject, self.characterBody.damage * 3.5f, EntityStates.BrotherMonster.FistSlam.waveProjectileForce, Util.CheckRoll(self.characterBody.crit, self.characterBody.master), 0, null, -1f);
-                    l++;
-                }
-            }
             orig(self);
         }
 
         public static void SpellChannelEnterState(On.EntityStates.BrotherMonster.SpellChannelEnterState.orig_OnEnter orig, EntityStates.BrotherMonster.SpellChannelEnterState self)
         {
-            EntityStates.BrotherMonster.SpellChannelEnterState.duration = 3f;
+            if (Main.EnableMithrixChanges.Value)
+            {
+                EntityStates.BrotherMonster.SpellChannelEnterState.duration = 3f;
+            }
+
             orig(self);
         }
 
         public static void SpellChannelState(On.EntityStates.BrotherMonster.SpellChannelState.orig_OnEnter orig, EntityStates.BrotherMonster.SpellChannelState self)
         {
-            EntityStates.BrotherMonster.SpellChannelState.stealInterval = 0.05f;
-            EntityStates.BrotherMonster.SpellChannelState.delayBeforeBeginningSteal = 0f;
-            EntityStates.BrotherMonster.SpellChannelState.maxDuration = 15f;
+            if (Main.EnableMithrixChanges.Value)
+            {
+                EntityStates.BrotherMonster.SpellChannelState.stealInterval = 0.05f;
+                EntityStates.BrotherMonster.SpellChannelState.delayBeforeBeginningSteal = 0f;
+                EntityStates.BrotherMonster.SpellChannelState.maxDuration = 15f;
+            }
+
             orig(self);
         }
 
         public static void SpellChannelExitState(On.EntityStates.BrotherMonster.SpellChannelExitState.orig_OnEnter orig, EntityStates.BrotherMonster.SpellChannelExitState self)
         {
-            EntityStates.BrotherMonster.SpellChannelExitState.lendInterval = 0.04f;
-            EntityStates.BrotherMonster.SpellChannelExitState.duration = 2.5f;
+            if (Main.EnableMithrixChanges.Value)
+            {
+                EntityStates.BrotherMonster.SpellChannelExitState.lendInterval = 0.04f;
+                EntityStates.BrotherMonster.SpellChannelExitState.duration = 2.5f;
+            }
+
             orig(self);
         }
 
         public static void StaggerEnter(On.EntityStates.BrotherMonster.StaggerEnter.orig_OnEnter orig, EntityStates.BrotherMonster.StaggerEnter self)
         {
-            self.duration = 0f;
+            if (Main.EnableMithrixChanges.Value)
+            {
+                self.duration = 0f;
+            }
+
             orig(self);
         }
 
         public static void StaggerExit(On.EntityStates.BrotherMonster.StaggerExit.orig_OnEnter orig, EntityStates.BrotherMonster.StaggerExit self)
         {
-            self.duration = 0f;
+            if (Main.EnableMithrixChanges.Value)
+            {
+                self.duration = 0f;
+            }
+
             orig(self);
         }
 
         public static void StaggerLoop(On.EntityStates.BrotherMonster.StaggerLoop.orig_OnEnter orig, EntityStates.BrotherMonster.StaggerLoop self)
         {
-            self.duration = 0f;
+            if (Main.EnableMithrixChanges.Value)
+            {
+                self.duration = 0f;
+            }
+
             orig(self);
         }
 
         public static void TrueDeathState(On.EntityStates.BrotherMonster.TrueDeathState.orig_OnEnter orig, EntityStates.BrotherMonster.TrueDeathState self)
         {
-            EntityStates.BrotherMonster.TrueDeathState.dissolveDuration = 5f;
+            if (Main.EnableMithrixChanges.Value)
+            {
+                EntityStates.BrotherMonster.TrueDeathState.dissolveDuration = 5f;
+            }
+
             orig(self);
         }
 
         public static void FireRandomProjectiles(On.EntityStates.BrotherHaunt.FireRandomProjectiles.orig_OnEnter orig, EntityStates.BrotherHaunt.FireRandomProjectiles self)
         {
-            EntityStates.BrotherHaunt.FireRandomProjectiles.maximumCharges = 150;
-            EntityStates.BrotherHaunt.FireRandomProjectiles.chargeRechargeDuration = 0.03f;
-            EntityStates.BrotherHaunt.FireRandomProjectiles.chanceToFirePerSecond = 0.5f;
-            EntityStates.BrotherHaunt.FireRandomProjectiles.damageCoefficient = 12f;
+            if (Main.EnableMithrixChanges.Value)
+            {
+                EntityStates.BrotherHaunt.FireRandomProjectiles.maximumCharges = 150;
+                EntityStates.BrotherHaunt.FireRandomProjectiles.chargeRechargeDuration = 0.03f;
+                EntityStates.BrotherHaunt.FireRandomProjectiles.chanceToFirePerSecond = 0.5f;
+                EntityStates.BrotherHaunt.FireRandomProjectiles.damageCoefficient = 12f;
+            }
+
             orig(self);
         }
 
@@ -773,63 +841,75 @@ namespace Inferno.Skill_Misc
 
         public static void WeaponSlam2(On.EntityStates.BrotherMonster.WeaponSlam.orig_FixedUpdate orig, EntityStates.BrotherMonster.WeaponSlam self)
         {
-            if (self.isAuthority)
+            if (Main.EnableMithrixChanges.Value)
             {
-                if (self.hasDoneBlastAttack)
+                if (self.isAuthority)
                 {
-                    if (self.modelTransform)
+                    if (self.hasDoneBlastAttack)
                     {
-                        if (!Main.hasFired)
+                        if (self.modelTransform)
                         {
-                            Ray ray = self.GetAimRay();
-                            Transform transform = self.FindModelChild(EntityStates.BrotherMonster.Weapon.FireLunarShards.muzzleString);
-                            if (transform)
+                            if (!Main.hasFired)
                             {
-                                ray.origin = transform.position;
+                                Ray ray = self.GetAimRay();
+                                Transform transform = self.FindModelChild(EntityStates.BrotherMonster.Weapon.FireLunarShards.muzzleString);
+                                if (transform)
+                                {
+                                    ray.origin = transform.position;
+                                }
+                                var orbs = 7f;
+                                Main.hasFired = true;
+                                float orbCount = 360f / orbs;
+                                Vector3 plane = Vector3.ProjectOnPlane(self.inputBank.aimDirection, Vector3.up);
+                                Transform transgender = self.FindModelChild(EntityStates.BrotherMonster.WeaponSlam.muzzleString);
+                                Vector3 pos = transgender.position;
+                                int j = 0;
+                                while (j < orbs)
+                                {
+                                    Vector3 zase = Quaternion.AngleAxis(orbCount * j, Vector3.up) * plane;
+                                    ProjectileManager.instance.FireProjectile(EntityStates.BrotherMonster.FistSlam.waveProjectilePrefab, pos, Util.QuaternionSafeLookRotation(zase), self.gameObject, self.characterBody.damage * EntityStates.BrotherMonster.FistSlam.waveProjectileDamageCoefficient * 0.6f, EntityStates.BrotherMonster.FistSlam.waveProjectileForce, Util.CheckRoll(self.characterBody.crit, self.characterBody.master), 0, null, -1f);
+                                    j++;
+                                }
+                                // i hate this code
                             }
-                            var orbs = 7f;
-                            Main.hasFired = true;
-                            float orbCount = 360f / orbs;
-                            Vector3 plane = Vector3.ProjectOnPlane(self.inputBank.aimDirection, Vector3.up);
-                            Transform transgender = self.FindModelChild(EntityStates.BrotherMonster.WeaponSlam.muzzleString);
-                            Vector3 pos = transgender.position;
-                            int j = 0;
-                            while (j < orbs)
-                            {
-                                Vector3 zase = Quaternion.AngleAxis(orbCount * j, Vector3.up) * plane;
-                                ProjectileManager.instance.FireProjectile(EntityStates.BrotherMonster.FistSlam.waveProjectilePrefab, pos, Util.QuaternionSafeLookRotation(zase), self.gameObject, self.characterBody.damage * EntityStates.BrotherMonster.FistSlam.waveProjectileDamageCoefficient * 0.6f, EntityStates.BrotherMonster.FistSlam.waveProjectileForce, Util.CheckRoll(self.characterBody.crit, self.characterBody.master), 0, null, -1f);
-                                j++;
-                            }
-                            // i hate this code
                         }
                     }
                 }
             }
+
             orig(self);
         }
 
         public static void UltChannelState(On.EntityStates.BrotherMonster.UltChannelState.orig_OnEnter orig, EntityStates.BrotherMonster.UltChannelState self)
         {
-            EntityStates.BrotherMonster.UltChannelState.totalWaves = 8;
-            if (Main.MithrixAS.Value)
+            if (Main.EnableMithrixChanges.Value)
             {
-                EntityStates.BrotherMonster.UltChannelState.maxDuration = 8f / self.attackSpeedStat;
+                EntityStates.BrotherMonster.UltChannelState.totalWaves = 8;
+                if (Main.MithrixAS.Value)
+                {
+                    EntityStates.BrotherMonster.UltChannelState.maxDuration = 8f / self.attackSpeedStat;
+                }
+                else
+                {
+                    EntityStates.BrotherMonster.UltChannelState.maxDuration = 8f;
+                }
             }
-            else
-            {
-                EntityStates.BrotherMonster.UltChannelState.maxDuration = 8f;
-            }
+
             orig(self);
         }
 
         public static void Phase3(On.EntityStates.Missions.BrotherEncounter.Phase3.orig_OnEnter orig, EntityStates.Missions.BrotherEncounter.Phase3 self)
         {
-            Main.Ramp1.SetActive(false);
-            Main.Ramp2.SetActive(false);
-            Main.Ramp3.SetActive(false);
-            Main.Rocks.SetActive(false);
+            if (Main.EnableMithrixChanges.Value)
+            {
+                Main.Ramp1.SetActive(false);
+                Main.Ramp2.SetActive(false);
+                Main.Ramp3.SetActive(false);
+                Main.Rocks.SetActive(false);
+            }
+
             orig(self);
-            if (NetworkServer.active)
+            if (NetworkServer.active && Main.EnableMithrixChanges.Value)
             {
                 foreach (TeamComponent teamComponent in new List<TeamComponent>(TeamComponent.GetTeamMembers(TeamIndex.Monster)))
                 {

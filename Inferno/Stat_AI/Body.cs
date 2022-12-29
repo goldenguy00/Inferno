@@ -92,23 +92,29 @@ namespace Inferno.Stat_AI
                     break;
 
                 case "BrotherBody(Clone)":
-                    cb.baseAcceleration = 200f;
-                    cb.baseMoveSpeed = 17f;
-                    cb.baseMaxHealth = 800f;
-                    cb.levelMaxHealth = 240f;
-                    cb.bodyFlags |= CharacterBody.BodyFlags.IgnoreFallDamage;
-                    cb.bodyFlags |= CharacterBody.BodyFlags.SprintAnyDirection;
+                    if (Main.EnableMithrixChanges.Value)
+                    {
+                        cb.baseAcceleration = 200f;
+                        cb.baseMoveSpeed = 17f;
+                        cb.baseMaxHealth = 800f;
+                        cb.levelMaxHealth = 240f;
+                        cb.bodyFlags |= CharacterBody.BodyFlags.IgnoreFallDamage;
+                        cb.bodyFlags |= CharacterBody.BodyFlags.SprintAnyDirection;
+                    }
                     break;
 
                 case "BrotherHurtBody(Clone)":
-                    cb.baseMaxHealth = 500f;
-                    cb.levelMaxHealth = 150f;
-                    cb.baseMoveSpeed = 10f;
-                    cb.sprintingSpeedMultiplier = 1.45f;
-                    cb.baseDamage = 5f;
-                    cb.levelDamage = 1f;
-                    cb.bodyFlags |= CharacterBody.BodyFlags.IgnoreFallDamage;
-                    cb.bodyFlags |= CharacterBody.BodyFlags.SprintAnyDirection;
+                    if (Main.EnableMithrixChanges.Value)
+                    {
+                        cb.baseMaxHealth = 500f;
+                        cb.levelMaxHealth = 150f;
+                        cb.baseMoveSpeed = 10f;
+                        cb.sprintingSpeedMultiplier = 1.45f;
+                        cb.baseDamage = 5f;
+                        cb.levelDamage = 1f;
+                        cb.bodyFlags |= CharacterBody.BodyFlags.IgnoreFallDamage;
+                        cb.bodyFlags |= CharacterBody.BodyFlags.SprintAnyDirection;
+                    }
                     break;
 
                 case "TitanBody(Clone)":

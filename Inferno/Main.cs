@@ -194,7 +194,7 @@ namespace Inferno
             VignetteIntensity = Config.Bind("Post Processing", "Vignette Intensity", 0.21f, "Vanilla is 0");
             PostProcessingWeight = Config.Bind("Post Processing", "Strength", 1f, "Vanilla is 0");
 
-            EnableMithrixChanges = Config.Bind("Mod Compatibility", "Enable Mithrix Changes?", true, "Useful when playing with another mod that changes Mithrix. Vanilla is false");
+            EnableMithrixChanges = Config.Bind("Mod Compatibility", "Enable Mithrix Changes?", true, "Useful when playing with another mod that changes Mithrix. Best to change before fighting Mithrix. Vanilla is false");
 
             AddDifficulty();
             FillTokens();
@@ -449,13 +449,13 @@ namespace Inferno
             }
             if (ism.InfernoSkinModPlugin.CommandoSkin != null)
             {
-                var captain = ism.InfernoSkinModPlugin.CommandoSkin;
-                captain.unlockableDef = CommandoSkin;
+                var mando = ism.InfernoSkinModPlugin.CommandoSkin;
+                mando.unlockableDef = CommandoSkin;
             }
             if (ism.InfernoSkinModPlugin.CaptainSkin != null)
             {
-                var mando = ism.InfernoSkinModPlugin.CaptainSkin;
-                mando.unlockableDef = CaptainSkin;
+                var captain = ism.InfernoSkinModPlugin.CaptainSkin;
+                captain.unlockableDef = CaptainSkin;
             }
             if (ism.InfernoSkinModPlugin.ArtificerSkin != null)
             {
