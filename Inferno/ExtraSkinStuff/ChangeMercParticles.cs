@@ -582,14 +582,18 @@ namespace Inferno.ExtraSkinStuff
                             var lightInfos = model.GetComponent<CharacterModel>().baseLightInfos;
 
                             var backLight = lightInfos[0].light;
-                            backLight.color = new Color32(9, 0, 255, 255);
+                            var darkBlue = new Color(0.03529411765f, 0f, 1f, 1f);
+                            backLight.set_color_Injected(ref darkBlue);
+                            // backLight.color = new Color32(9, 0, 255, 255);
                             backLight.intensity = 2f;
                             backLight.range = 5f;
 
                             backLight.gameObject.GetComponent<FlickerLight>().enabled = false;
 
                             var swordLight = lightInfos[1].light;
-                            swordLight.color = new Color32(255, 175, 0, 255);
+                            var pissYellow = new Color(1f, 0.6862745098f, 0f, 1f);
+                            swordLight.set_color_Injected(ref pissYellow);
+                            // swordLight.color = new Color32(255, 175, 0, 255);
                             swordLight.intensity = 1.5f;
                             swordLight.range = 2f;
 
