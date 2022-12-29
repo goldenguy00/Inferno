@@ -921,7 +921,7 @@ namespace Inferno.Skill_Misc
 
         public static void Self_calcColor(ref Color color)
         {
-            color = new Color(0.4117647059f, 0.1176470588f, 0.1450980392f, 1f) * 3f;
+            color = new Color(0.4117647059f, 0.1176470588f, 0.1450980392f, 1f) * 1.5f;
         }
 
         public static void Self_calcChargeRate(ref float rate)

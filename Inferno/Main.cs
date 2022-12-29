@@ -450,12 +450,12 @@ namespace Inferno
             if (ism.InfernoSkinModPlugin.CommandoSkin != null)
             {
                 var captain = ism.InfernoSkinModPlugin.CommandoSkin;
-                captain.unlockableDef = CaptainSkin;
+                captain.unlockableDef = CommandoSkin;
             }
             if (ism.InfernoSkinModPlugin.CaptainSkin != null)
             {
                 var mando = ism.InfernoSkinModPlugin.CaptainSkin;
-                mando.unlockableDef = CommandoSkin;
+                mando.unlockableDef = CaptainSkin;
             }
             if (ism.InfernoSkinModPlugin.ArtificerSkin != null)
             {
