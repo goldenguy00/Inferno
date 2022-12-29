@@ -13,24 +13,28 @@
             On.EntityStates.Bison.Charge.OnEnter += Hooks.Charge;
             On.EntityStates.Bison.Headbutt.OnEnter += Hooks.Headbutt;
             On.EntityStates.BrotherHaunt.FireRandomProjectiles.OnEnter += Hooks.FireRandomProjectiles;
-            On.EntityStates.BrotherMonster.BaseSlideState.OnEnter += Hooks.BaseSlideState;
-            On.EntityStates.BrotherMonster.ExitSkyLeap.OnEnter += Hooks.ExitSkyLeap;
-            On.EntityStates.BrotherMonster.FistSlam.OnEnter += Hooks.FistSlam;
-            On.EntityStates.BrotherMonster.HoldSkyLeap.OnEnter += Hooks.HoldSkyLeap;
-            On.EntityStates.BrotherMonster.SlideIntroState.OnEnter += Hooks.SlideIntroState;
-            On.EntityStates.BrotherMonster.SpellChannelEnterState.OnEnter += Hooks.SpellChannelEnterState;
-            On.EntityStates.BrotherMonster.SpellChannelExitState.OnEnter += Hooks.SpellChannelExitState;
-            On.EntityStates.BrotherMonster.SpellChannelState.OnEnter += Hooks.SpellChannelState;
-            On.EntityStates.BrotherMonster.SprintBash.OnEnter += Hooks.SprintBash;
-            On.EntityStates.BrotherMonster.StaggerEnter.OnEnter += Hooks.StaggerEnter;
-            On.EntityStates.BrotherMonster.StaggerExit.OnEnter += Hooks.StaggerExit;
-            On.EntityStates.BrotherMonster.StaggerLoop.OnEnter += Hooks.StaggerLoop;
-            On.EntityStates.BrotherMonster.TrueDeathState.OnEnter += Hooks.TrueDeathState;
-            On.EntityStates.BrotherMonster.UltChannelState.OnEnter += Hooks.UltChannelState;
-            On.EntityStates.BrotherMonster.UltChannelState.FireWave += Hooks.FireWave;
-            On.EntityStates.BrotherMonster.Weapon.FireLunarShards.OnEnter += Hooks.FireLunarShards;
-            On.EntityStates.BrotherMonster.WeaponSlam.FixedUpdate += Hooks.WeaponSlam2;
-            On.EntityStates.BrotherMonster.WeaponSlam.OnEnter += Hooks.WeaponSlam;
+            if (Main.EnableMithrixChanges.Value)
+            {
+                On.EntityStates.BrotherMonster.BaseSlideState.OnEnter += Hooks.BaseSlideState;
+                On.EntityStates.BrotherMonster.ExitSkyLeap.OnEnter += Hooks.ExitSkyLeap;
+                On.EntityStates.BrotherMonster.FistSlam.OnEnter += Hooks.FistSlam;
+                On.EntityStates.BrotherMonster.HoldSkyLeap.OnEnter += Hooks.HoldSkyLeap;
+                On.EntityStates.BrotherMonster.SlideIntroState.OnEnter += Hooks.SlideIntroState;
+                On.EntityStates.BrotherMonster.SpellChannelEnterState.OnEnter += Hooks.SpellChannelEnterState;
+                On.EntityStates.BrotherMonster.SpellChannelExitState.OnEnter += Hooks.SpellChannelExitState;
+                On.EntityStates.BrotherMonster.SpellChannelState.OnEnter += Hooks.SpellChannelState;
+                On.EntityStates.BrotherMonster.SprintBash.OnEnter += Hooks.SprintBash;
+                On.EntityStates.BrotherMonster.StaggerEnter.OnEnter += Hooks.StaggerEnter;
+                On.EntityStates.BrotherMonster.StaggerExit.OnEnter += Hooks.StaggerExit;
+                On.EntityStates.BrotherMonster.StaggerLoop.OnEnter += Hooks.StaggerLoop;
+                On.EntityStates.BrotherMonster.TrueDeathState.OnEnter += Hooks.TrueDeathState;
+                On.EntityStates.BrotherMonster.UltChannelState.OnEnter += Hooks.UltChannelState;
+                On.EntityStates.BrotherMonster.UltChannelState.FireWave += Hooks.FireWave;
+                On.EntityStates.BrotherMonster.Weapon.FireLunarShards.OnEnter += Hooks.FireLunarShards;
+                On.EntityStates.BrotherMonster.WeaponSlam.FixedUpdate += Hooks.WeaponSlam2;
+                On.EntityStates.BrotherMonster.WeaponSlam.OnEnter += Hooks.WeaponSlam;
+            }
+
             On.EntityStates.ClayBoss.ClayBossWeapon.ChargeBombardment.OnEnter += Hooks.ChargeBombardment;
             On.EntityStates.ClayBoss.ClayBossWeapon.FireBombardment.OnEnter += Hooks.FireBombardment;
             On.EntityStates.ClayBoss.FireTarball.OnEnter += Hooks.FireTarBall;

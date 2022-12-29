@@ -10,11 +10,14 @@ using UnityEngine;
 using RoR2.Projectile;
 using Random = UnityEngine.Random;
 using EntityStates.BrotherMonster.Weapon;
+using UnityEngine.AddressableAssets;
 
 namespace Inferno.Skill_Misc
 {
     public static class Hooks
     {
+        public static GameObject genericFoostepVFX = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Common/VFX/GenericLargeFootstepDust.prefab").WaitForCompletion();
+
         public static void SpeedUpProjectiles2(On.RoR2.Projectile.ProjectileController.orig_Start orig, ProjectileController self)
         {
             orig(self);
@@ -263,9 +266,11 @@ namespace Inferno.Skill_Misc
                 case EntityStates.BrotherMonster.SlideBackwardState:
                     self.slideRotation = Quaternion.identity;
                     break;
+
                 case EntityStates.BrotherMonster.SlideLeftState:
                     self.slideRotation = Quaternion.AngleAxis(-40f, Vector3.up);
                     break;
+
                 case EntityStates.BrotherMonster.SlideRightState:
                     self.slideRotation = Quaternion.AngleAxis(40f, Vector3.up);
                     break;
@@ -431,21 +436,25 @@ namespace Inferno.Skill_Misc
         public static void HeadbuttState(On.EntityStates.BeetleMonster.HeadbuttState.orig_FixedUpdate orig, EntityStates.BeetleMonster.HeadbuttState self)
         {
             EntityStates.BeetleMonster.HeadbuttState.baseDuration = 2.7f;
-            if (self.modelAnimator && self.modelAnimator.GetFloat("Headbutt.hitBoxActive") > 0.5f)
+            if (self.isAuthority)
             {
-                Vector3 direction = self.GetAimRay().direction;
-                Vector3 a = direction.normalized * 2f * self.moveSpeedStat;
-                Vector3 b = Vector3.up * 5f;
-                Vector3 b2 = new Vector3(direction.x, 0f, direction.z).normalized * 4.5f;
-                self.characterMotor.Motor.ForceUnground();
-                self.characterMotor.velocity = a + b + b2;
+                if (self.modelAnimator && self.modelAnimator.GetFloat("Headbutt.hitBoxActive") > 0.5f)
+                {
+                    Vector3 direction = self.GetAimRay().direction;
+                    Vector3 a = direction.normalized * 2f * self.moveSpeedStat;
+                    Vector3 b = Vector3.up * 5f;
+                    Vector3 b2 = new Vector3(direction.x, 0f, direction.z).normalized * 4.5f;
+                    self.characterMotor.Motor.ForceUnground();
+                    self.characterMotor.velocity = a + b + b2;
+                    EffectManager.SpawnEffect(genericFoostepVFX, new EffectData { _origin = self.characterBody.footPosition }, true);
+                }
+                /*
+                if (self.fixedAge > 0.5f && self.fixedAge < 2.1f)
+                {
+                    self.attack.Fire(null);
+                }
+                */
             }
-
-            if (self.fixedAge > 0.5f && self.fixedAge < 2.1f)
-            {
-                self.attack.Fire(null);
-            }
-
             orig(self);
 
             // results in double hits sometimes, no idea how to fix it!
@@ -520,17 +529,20 @@ namespace Inferno.Skill_Misc
 
         public static void Bite2(On.EntityStates.LemurianMonster.Bite.orig_FixedUpdate orig, EntityStates.LemurianMonster.Bite self)
         {
-            if (self.modelAnimator && self.modelAnimator.GetFloat("Bite.hitBoxActive") > 0.1f)
+            if (self.isAuthority)
             {
-                Vector3 direction = self.GetAimRay().direction;
-                Vector3 a = direction.normalized * 1.5f * self.moveSpeedStat;
-                Vector3 b = new Vector3(direction.x, 0f, direction.z).normalized * 1.5f;
-                self.characterMotor.Motor.ForceUnground();
-                self.characterMotor.velocity = a + b;
-            }
-            if (self.fixedAge > 0.5f)
-            {
-                self.attack.Fire(null);
+                if (self.modelAnimator && self.modelAnimator.GetFloat("Bite.hitBoxActive") > 0.1f)
+                {
+                    Vector3 direction = self.GetAimRay().direction;
+                    Vector3 a = direction.normalized * 1.5f * self.moveSpeedStat;
+                    Vector3 b = new Vector3(direction.x, 0f, direction.z).normalized * 1.5f;
+                    self.characterMotor.Motor.ForceUnground();
+                    self.characterMotor.velocity = a + b;
+                }
+                if (self.fixedAge > 0.5f)
+                {
+                    self.attack.Fire(null);
+                }
             }
             orig(self);
         }
@@ -835,9 +847,11 @@ namespace Inferno.Skill_Misc
                                 case "LunarExploderBody(Clone)":
                                     component.Suicide(null, null, DamageType.Generic);
                                     break;
+
                                 case "LunarGolemBody(Clone)":
                                     component.Suicide(null, null, DamageType.Generic);
                                     break;
+
                                 case "LunarWispBody(Clone)":
                                     component.Suicide(null, null, DamageType.Generic);
                                     break;
@@ -897,12 +911,21 @@ namespace Inferno.Skill_Misc
             orig(self);
             self.calcRadius += Self_calcRadius;
             self.calcChargeRate += Self_calcChargeRate;
+            if (self.name.Contains("Battery"))
+            {
+                self.calcChargeRate += Self_calcChargeRate1;
+            }
             self.calcColor += Self_calcColor;
+        }
+
+        private static void Self_calcChargeRate1(ref float rate)
+        {
+            rate *= 1f + Main.PillarSpeed.Value / 100f;
         }
 
         public static void Self_calcColor(ref Color color)
         {
-            color = new Color32(105, 30, 37, 255);
+            color = new Color(0.4117647059f, 0.1176470588f, 0.1450980392f, 1f) * 3f;
         }
 
         public static void Self_calcChargeRate(ref float rate)

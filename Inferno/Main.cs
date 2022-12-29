@@ -1,55 +1,52 @@
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
-using MonoMod.Cil;
 using R2API;
-using R2API.Utils;
-using Rewired.ComponentControls.Effects;
 using RoR2;
-using RoR2.Achievements;
 using RoR2.CharacterAI;
-using RoR2.Projectile;
 using RoR2.Skills;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.Networking;
 using Object = UnityEngine.Object;
-using Random = UnityEngine.Random;
 using RiskOfOptions;
 using RiskOfOptions.Options;
 using RiskOfOptions.OptionConfigs;
 using UnityEngine.Rendering.PostProcessing;
-using UnityEngine.SceneManagement;
-using System.ComponentModel;
-using EntityStates.BrotherMonster.Weapon;
 using Inferno.Skill_Misc;
 using Inferno.Stat_AI;
 using Inferno.Item;
+using ism = InfernoSkinMod;
+using R2API.ContentManagement;
+using Inferno.ExtraSkinStuff;
+
+// using Inferno.ExtraSkinStuff;
 
 namespace Inferno
 {
-    [BepInDependency(R2API.R2API.PluginGUID)]
+    [BepInDependency(LanguageAPI.PluginGUID)]
+    [BepInDependency(RecalculateStatsAPI.PluginGUID)]
+    [BepInDependency(R2APIContentManager.PluginGUID)]
+    [BepInDependency(DifficultyAPI.PluginGUID)]
+    [BepInDependency(ItemAPI.PluginGUID)]
     [BepInDependency("com.rune580.riskofoptions", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.RiskyLives.RiskyMod", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
-    [R2APISubmoduleDependency(nameof(DifficultyAPI), nameof(LanguageAPI), nameof(RecalculateStatsAPI), nameof(ItemAPI))]
     public class Main : BaseUnityPlugin
     {
         public const string PluginGUID = PluginAuthor + "." + PluginName;
 
         public const string PluginAuthor = "HIFU";
         public const string PluginName = "Inferno";
-        public const string PluginVersion = "1.5.1";
+        public const string PluginVersion = "1.6.0";
 
         public static DifficultyDef InfernoDiffDef;
 
         public static DifficultyIndex InfernoDiffIndex;
 
-        public AssetBundle inferno;
+        public static AssetBundle inferno;
 
         public static ManualLogSource InfernoLogger;
 
@@ -94,6 +91,8 @@ namespace Inferno
 
         public static ConfigEntry<bool> Important { get; set; }
 
+        public static ConfigEntry<bool> EnableMithrixChanges { get; set; }
+
         public static ColorGrading cg;
         public static Vignette vn;
 
@@ -105,6 +104,9 @@ namespace Inferno
         public static UnlockableDef CommandoSkin;
         public static UnlockableDef BanditSkin;
         public static UnlockableDef CaptainSkin;
+        public static UnlockableDef ArtificerSkin;
+        public static UnlockableDef MercenarySkin;
+        public static UnlockableDef RailgunnerSkin;
 
         private static readonly System.Random random = new();
 
@@ -119,11 +121,47 @@ namespace Inferno
 
         public static int ShardCount = 0;
 
+        public static Shader cloudRemap;
+
+        public static Material matMercDelayedBillboard;
+        public static Material matMercDelayedBillboard2;
+        public static Material matMercEnergized;
+        public static Material matMercEvisTarget;
+        public static Material matMercExposed;
+        public static Material matMercExposedBackdrop;
+        public static Material matMercExposedSlash;
+        public static Material matMercFocusedAssaultIcon;
+        public static Material matMercHologram;
+        public static Material matMercIgnition;
+        public static Material matMercSwipe1;
+        public static Material matMercSwipe2;
+        public static Material matMercSwipe3;
+
+        public static ConfigEntry<float> PillarSpeed { get; set; }
+
+        private static readonly string s = "Assets/InfernoSkins/";
+
         public void Awake()
         {
             Main.InfernoLogger = base.Logger;
 
             inferno = AssetBundle.LoadFromFile(Assembly.GetExecutingAssembly().Location.Replace("Inferno.dll", "inferno"));
+
+            cloudRemap = Addressables.LoadAssetAsync<Shader>("RoR2/Base/Shaders/HGCloudRemap.shader").WaitForCompletion();
+
+            foreach (Material mat in inferno.LoadAllAssets<Material>())
+            {
+                switch (mat.shader.name)
+                {
+                    case "StubbedShader/fx/hgcloudremap":
+                        mat.shader = cloudRemap;
+                        break;
+                }
+            }
+
+            matMercDelayedBillboard = inferno.LoadAsset<Material>(s + "matMercDelayedBillboard.mat");
+            matMercDelayedBillboard2 = inferno.LoadAsset<Material>(s + "matMercDelayedBillboard2.mat");
+            matMercEnergized = inferno.LoadAsset<Material>(s + "matMercEnergized.mat");
 
             Items.Create();
 
@@ -149,11 +187,14 @@ namespace Inferno
             CreditMultiplier = Config.Bind("General II", "C. Director Credit Multiplier", 0.05f, "Adds to the combat director credit multiplier every cleared stage. Vanilla is 0");
             TeleporterSpeed = Config.Bind("General III", "Holdout Zone Speed", 30f, "Adds to the percent of holdout zone speed. Vanilla is 0");
             TeleporterSize = Config.Bind("General III", "Holdout Zone Radius", -30f, "Adds to the percent of holdout zone radius. Vanilla is 0");
+            PillarSpeed = Config.Bind("General III", "Pillar Speed", 30f, "Adds to the percent of pillar speed. Vanilla is 0");
             MithrixAS = Config.Bind("Bullshit", "Make Mithrix scale with Attack Speed?", false, "Vanilla is false");
 
             ColorGradingRedGain = Config.Bind("Post Processing", "Red Gain", 3.7f, "Vanilla is 0");
             VignetteIntensity = Config.Bind("Post Processing", "Vignette Intensity", 0.21f, "Vanilla is 0");
             PostProcessingWeight = Config.Bind("Post Processing", "Strength", 1f, "Vanilla is 0");
+
+            EnableMithrixChanges = Config.Bind("Mod Compatibility", "Enable Mithrix Changes?", true, "Useful when playing with another mod that changes Mithrix. Vanilla is false");
 
             AddDifficulty();
             FillTokens();
@@ -182,8 +223,9 @@ namespace Inferno
             ModSettingsManager.AddOption(new IntSliderOption(MonsterLimit, new IntSliderConfig() { min = 0, max = 200 }));
 
             ModSettingsManager.AddOption(new StepSliderOption(AllyPermanentDamage, new StepSliderConfig() { increment = 5f, min = 0f, max = 500f }));
-            ModSettingsManager.AddOption(new StepSliderOption(TeleporterSpeed, new StepSliderConfig() { increment = 5f, min = -50f, max = 50f }));
-            ModSettingsManager.AddOption(new StepSliderOption(TeleporterSize, new StepSliderConfig() { increment = 5f, min = -50f, max = 50f }));
+            ModSettingsManager.AddOption(new StepSliderOption(TeleporterSpeed, new StepSliderConfig() { increment = 3f, min = -99f, max = 99f }));
+            ModSettingsManager.AddOption(new StepSliderOption(TeleporterSize, new StepSliderConfig() { increment = 3f, min = -70f, max = 99f }));
+            ModSettingsManager.AddOption(new StepSliderOption(PillarSpeed, new StepSliderConfig() { increment = 3f, min = -99f, max = 99f }));
 
             ModSettingsManager.AddOption(new GenericButtonOption("", "General", "Note that upon hitting the Reset to default button, this menu does not visually update until you leave the settings and go back in.", "Reset to default", ResetConfig));
             ModSettingsManager.AddOption(new CheckBoxOption(MithrixAS, new CheckBoxConfig() { category = "Bullshit" }));
@@ -193,6 +235,8 @@ namespace Inferno
             ModSettingsManager.AddOption(new StepSliderOption(VignetteIntensity, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 1f }));
             ModSettingsManager.AddOption(new StepSliderOption(PostProcessingWeight, new StepSliderConfig() { increment = 0.01f, min = 0f, max = 1f }));
             ModSettingsManager.AddOption(new GenericButtonOption("", "Post Processing", "Note that upon hitting the Reset to default button, this menu does not visually update until you leave the settings and go back in.", "Reset to default", ResetPostProcessing));
+
+            ModSettingsManager.AddOption(new CheckBoxOption(EnableMithrixChanges));
 
             var uselessPieceOfShit = Addressables.LoadAssetAsync<SkillDef>("RoR2/Base/Beetle/BeetleBodySleep.asset").WaitForCompletion();
             uselessPieceOfShit.baseMaxStock = 0;
@@ -240,6 +284,8 @@ namespace Inferno
                 IL.RoR2.Run.RecalculateDifficultyCoefficentInternal -= Hooks.Ambient;
                 ShouldRun = false;
             };
+
+            ChangeMercParticles.ChangeLights();
         }
 
         private void RandomizeConfig()
@@ -332,7 +378,7 @@ namespace Inferno
             StageCooldownReduction.Value = (float)Math.Round((float)rnggggggggggggg.Next(0, 100), MidpointRounding.ToEven) * 0.01f;
         }
 
-        #endregion
+        #endregion FuckOff
 
         private void ResetConfig()
         {
@@ -391,23 +437,46 @@ namespace Inferno
             {
                 ppHolder.SetActive(false);
             }
-            if (InfernoSkinMod.InfernoSkinModPlugin.BanditSkinn != null)
+
+            // update this
+            // disable merc glow
+            // add custom particles
+
+            if (ism.InfernoSkinModPlugin.BanditSkin != null)
             {
-                InfernoSkinMod.InfernoSkinModPlugin.BanditSkinn.unlockableDef = BanditSkin;
+                var bandit = ism.InfernoSkinModPlugin.BanditSkin;
+                bandit.unlockableDef = BanditSkin;
             }
-            if (InfernoSkinMod.InfernoSkinModPlugin.CaptainSkinn != null)
+            if (ism.InfernoSkinModPlugin.CommandoSkin != null)
             {
-                InfernoSkinMod.InfernoSkinModPlugin.CaptainSkinn.unlockableDef = CaptainSkin;
+                var captain = ism.InfernoSkinModPlugin.CommandoSkin;
+                captain.unlockableDef = CaptainSkin;
             }
-            if (InfernoSkinMod.InfernoSkinModPlugin.CommandoSkinn != null)
+            if (ism.InfernoSkinModPlugin.CaptainSkin != null)
             {
-                InfernoSkinMod.InfernoSkinModPlugin.CommandoSkinn.unlockableDef = CommandoSkin;
+                var mando = ism.InfernoSkinModPlugin.CaptainSkin;
+                mando.unlockableDef = CommandoSkin;
+            }
+            if (ism.InfernoSkinModPlugin.ArtificerSkin != null)
+            {
+                var arti = ism.InfernoSkinModPlugin.ArtificerSkin;
+                arti.unlockableDef = ArtificerSkin;
+            }
+            if (ism.InfernoSkinModPlugin.MercenarySkin != null)
+            {
+                var merc = ism.InfernoSkinModPlugin.MercenarySkin;
+                merc.unlockableDef = MercenarySkin;
+            }
+            if (ism.InfernoSkinModPlugin.RailgunnerSkin != null)
+            {
+                var rg = ism.InfernoSkinModPlugin.RailgunnerSkin;
+                rg.unlockableDef = RailgunnerSkin;
             }
         }
 
         public void ChangeAmbientCap(Run run, RuleBook useless)
         {
-            Run.ambientLevelCap = (run.selectedDifficulty == InfernoDiffIndex) ? int.MaxValue : 99;
+            Run.ambientLevelCap = (run.selectedDifficulty == InfernoDiffIndex) ? int.MaxValue : Run.ambientLevelCap;
         }
 
         private static string Language_GetLocalizedStringByToken(On.RoR2.Language.orig_GetLocalizedStringByToken orig, Language self, string token)
@@ -462,25 +531,58 @@ namespace Inferno
 
             LanguageAPI.Add("ACHIEVEMENT_CAPTAINCLEARGAMEINFERNO_NAME", "Captain: Survival");
             LanguageAPI.Add("ACHIEVEMENT_CAPTAINCLEARGAMEINFERNO_DESCRIPTION", "As Captain, beat the game or obliterate on Inferno.");
+
+            LanguageAPI.Add("ACHIEVEMENT_ARTIFICERCLEARGAMEINFERNO_NAME", "Artificer: Survival");
+            LanguageAPI.Add("ACHIEVEMENT_ARTIFICERCLEARGAMEINFERNO_DESCRIPTION", "As Artificer, beat the game or obliterate on Inferno.");
+
+            LanguageAPI.Add("ACHIEVEMENT_MERCENARYCLEARGAMEINFERNO_NAME", "Mercenary: Survival");
+            LanguageAPI.Add("ACHIEVEMENT_MERCENARYCLEARGAMEINFERNO_DESCRIPTION", "As Mercenary, beat the game or obliterate on Inferno.");
+
+            LanguageAPI.Add("ACHIEVEMENT_RAILGUNNERCLEARGAMEINFERNO_NAME", "Railgunner: Survival");
+            LanguageAPI.Add("ACHIEVEMENT_RAILGUNNERCLEARGAMEINFERNO_DESCRIPTION", "As Railgunner, beat the game or obliterate on Inferno.");
+
             LanguageAPI.Add("DOTFLARE_SKIN_BCAPTAIN_NAME", "Erised");
+            LanguageAPI.Add("DOTFLARE_SKIN_CARTI_NAME", "Crystallized");
+            LanguageAPI.Add("DOTFLARE_SKIN_DBANDIT_NAME", "Deadshot");
+            LanguageAPI.Add("DOTFLARE_SKIN_HMERC_NAME", "Headless");
+            LanguageAPI.Add("DOTFLARE_SKIN_MMANDO_NAME", "Overgrown");
+            LanguageAPI.Add("DOTFLARE_SKIN_PGUNNER_NAME", "Buried");
 
             CommandoSkin = ScriptableObject.CreateInstance<UnlockableDef>();
             CommandoSkin.cachedName = "Skins.Inferno_Commando";
             CommandoSkin.nameToken = "ACHIEVEMENT_COMMANDOCLEARGAMEINFERNO_NAME";
-            CommandoSkin.achievementIcon = inferno.LoadAsset<Sprite>("Assets/InfernoSkins/texOvergrownCommandoIcon.png");
+            CommandoSkin.achievementIcon = inferno.LoadAsset<Sprite>("Assets/InfernoSkins/texCommandoSkin.png");
             ContentAddition.AddUnlockableDef(CommandoSkin);
 
             BanditSkin = ScriptableObject.CreateInstance<UnlockableDef>();
             BanditSkin.cachedName = "Skins.Inferno_Bandit";
             BanditSkin.nameToken = "ACHIEVEMENT_BANDIT2CLEARGAMEINFERNO_NAME";
-            BanditSkin.achievementIcon = inferno.LoadAsset<Sprite>("Assets/InfernoSkins/texDeadshotBanditIcon.png");
+            BanditSkin.achievementIcon = inferno.LoadAsset<Sprite>("Assets/InfernoSkins/texBanditSkin.png");
             ContentAddition.AddUnlockableDef(BanditSkin);
 
             CaptainSkin = ScriptableObject.CreateInstance<UnlockableDef>();
             CaptainSkin.cachedName = "Skins.Inferno_Captain";
             CaptainSkin.nameToken = "ACHIEVEMENT_CAPTAINCLEARGAMEINFERNO_NAME";
-            CaptainSkin.achievementIcon = inferno.LoadAsset<Sprite>("Assets/InfernoSkins/texErisedCaptainIcon.png");
+            CaptainSkin.achievementIcon = inferno.LoadAsset<Sprite>("Assets/InfernoSkins/texCaptainSkin.png");
             ContentAddition.AddUnlockableDef(CaptainSkin);
+
+            ArtificerSkin = ScriptableObject.CreateInstance<UnlockableDef>();
+            ArtificerSkin.cachedName = "Skins.Inferno_Artificer";
+            ArtificerSkin.nameToken = "ACHIEVEMENT_ARTIFICERCLEARGAMEINFERNO_NAME";
+            ArtificerSkin.achievementIcon = inferno.LoadAsset<Sprite>("Assets/InfernoSkins/texArtificerSkin.png");
+            ContentAddition.AddUnlockableDef(ArtificerSkin);
+
+            MercenarySkin = ScriptableObject.CreateInstance<UnlockableDef>();
+            MercenarySkin.cachedName = "Skins.Inferno_Mercenary";
+            MercenarySkin.nameToken = "ACHIEVEMENT_MERCENARYCLEARGAMEINFERNO_NAME";
+            MercenarySkin.achievementIcon = inferno.LoadAsset<Sprite>("Assets/InfernoSkins/texMercenarySkin.png");
+            ContentAddition.AddUnlockableDef(MercenarySkin);
+
+            RailgunnerSkin = ScriptableObject.CreateInstance<UnlockableDef>();
+            RailgunnerSkin.cachedName = "Skins.Inferno_Railgunner";
+            RailgunnerSkin.nameToken = "ACHIEVEMENT_RAILGUNNERCLEARGAMEINFERNO_NAME";
+            RailgunnerSkin.achievementIcon = inferno.LoadAsset<Sprite>("Assets/InfernoSkins/texRailgunnerSkin.png");
+            ContentAddition.AddUnlockableDef(RailgunnerSkin);
         }
     }
 

@@ -1,8 +1,5 @@
 ﻿using RoR2;
 using RoR2.Achievements;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Inferno.Unlocks
 {
@@ -69,6 +66,36 @@ namespace Inferno.Unlocks
         public override BodyIndex LookUpRequiredBodyIndex()
         {
             return BodyCatalog.FindBodyIndex("CaptainBody");
+        }
+    }
+
+    [RegisterAchievement("ArtificerClearGameInferno", "Skins.Inferno_Artificer", "FreeMage", null)]
+    public class ArtificerClearGameInfernoAchievement : BasePerSurvivorClearGameInfernoAchievement
+    {
+        [SystemInitializer(typeof(HG.Reflection.SearchableAttribute.OptInAttribute))]
+        public override BodyIndex LookUpRequiredBodyIndex()
+        {
+            return BodyCatalog.FindBodyIndex("MageBody");
+        }
+    }
+
+    [RegisterAchievement("MercenaryClearGameInferno", "Skins.Inferno_Mercenary", "CompleteUnknownEnding", null)]
+    public class MercenaryClearGameInfernoAchievement : BasePerSurvivorClearGameInfernoAchievement
+    {
+        [SystemInitializer(typeof(HG.Reflection.SearchableAttribute.OptInAttribute))]
+        public override BodyIndex LookUpRequiredBodyIndex()
+        {
+            return BodyCatalog.FindBodyIndex("MercBody");
+        }
+    }
+
+    [RegisterAchievement("RailgunnerClearGameInferno", "Skins.Inferno_Railgunner", null, null)]
+    public class RailgunnerClearGameInfernoAchievement : BasePerSurvivorClearGameInfernoAchievement
+    {
+        [SystemInitializer(typeof(HG.Reflection.SearchableAttribute.OptInAttribute))]
+        public override BodyIndex LookUpRequiredBodyIndex()
+        {
+            return BodyCatalog.FindBodyIndex("RailgunnerBody");
         }
     }
 }

@@ -147,8 +147,8 @@ namespace Inferno.Stat_AI
 
                 case "ClayBruiserBody(Clone)":
                     cb.baseMoveSpeed = 11f;
-                    cb.baseDamage = 11f;
-                    cb.levelDamage = 2.2f;
+                    cb.baseDamage = 12f;
+                    cb.levelDamage = 2.4f;
                     break;
 
                 case "LemurianBruiserBody(Clone)":
@@ -191,7 +191,7 @@ namespace Inferno.Stat_AI
                     break;
 
                 case "LunarWispBody(Clone)":
-                    cb.baseDamage = 9f;
+                    cb.baseDamage = 10f;
                     break;
 
                 case "GolemBody(Clone)":

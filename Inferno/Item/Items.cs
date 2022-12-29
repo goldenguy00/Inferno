@@ -7,31 +7,30 @@ namespace Inferno.Item
 {
     public static class Items
     {
-        const string PrimaryStockItemName = "Inferno: +1 Primary Stock";
-        const string PrimaryStockItemLangTokenName = "INFERNO_PRIMARYSTOCK";
-        const string PrimaryStockItemPickupDesc = "Racecar";
-        const string PrimaryStockItemFullDescription = "15:21";
+        private const string PrimaryStockItemName = "Inferno: +1 Primary Stock";
+        private const string PrimaryStockItemLangTokenName = "INFERNO_PRIMARYSTOCK";
+        private const string PrimaryStockItemPickupDesc = "Racecar";
+        private const string PrimaryStockItemFullDescription = "15:21";
 
-        const string SecondaryStockItemName = "Inferno: +1 Secondary Stock";
-        const string SecondaryStockItemLangTokenName = "INFERNO_SECONDARYSTOCK";
-        const string SecondaryStockItemPickupDesc = "Omega";
-        const string SecondaryStockItemFullDescription = "11:44";
+        private const string SecondaryStockItemName = "Inferno: +1 Secondary Stock";
+        private const string SecondaryStockItemLangTokenName = "INFERNO_SECONDARYSTOCK";
+        private const string SecondaryStockItemPickupDesc = "Omega";
+        private const string SecondaryStockItemFullDescription = "11:44";
 
-        const string UtilityStockItemName = "Inferno: +1 Utility Stock";
-        const string UtilityStockItemLangTokenName = "INFERNO_UTILITYSTOCK";
-        const string UtilityStockItemPickupDesc = "Reptile";
-        const string UtilityStockItemFullDescription = "16:44";
+        private const string UtilityStockItemName = "Inferno: +1 Utility Stock";
+        private const string UtilityStockItemLangTokenName = "INFERNO_UTILITYSTOCK";
+        private const string UtilityStockItemPickupDesc = "Reptile";
+        private const string UtilityStockItemFullDescription = "16:44";
 
-        const string SpecialStockItemName = "Inferno: +1 Special Stock";
-        const string SpecialStockItemLangTokenName = "INFERNO_SPECIALSTOCK";
-        const string SpecialStockItemPickupDesc = "Periphery V When";
-        const string SpecialStockItemFullDescription = "??:??";
+        private const string SpecialStockItemName = "Inferno: +1 Special Stock";
+        private const string SpecialStockItemLangTokenName = "INFERNO_SPECIALSTOCK";
+        private const string SpecialStockItemPickupDesc = "Periphery V When";
+        private const string SpecialStockItemFullDescription = "??:??";
 
-        const string AllCooldownItemName = "Inferno: +1% All CDR";
-        const string AllCooldownItemLangTokenName = "INFERNO_ALLCDR";
-        const string AllCooldownItemPickupDesc = "Periphery VI When";
-        const string AllCooldownItemFullDescription = "???:???";
-
+        private const string AllCooldownItemName = "Inferno: +1% All CDR";
+        private const string AllCooldownItemLangTokenName = "INFERNO_ALLCDR";
+        private const string AllCooldownItemPickupDesc = "Periphery VI When";
+        private const string AllCooldownItemFullDescription = "???:???";
 
         public static ItemTier Tier;
         public static ItemTag[] ItemTags { get; set; } = new ItemTag[] { };
@@ -60,7 +59,7 @@ namespace Inferno.Item
             LanguageAPI.Add("ITEM_" + PrimaryStockItemLangTokenName + "_PICKUP", PrimaryStockItemPickupDesc);
             LanguageAPI.Add("ITEM_" + PrimaryStockItemLangTokenName + "_DESCRIPTION", PrimaryStockItemFullDescription);
 
-            ContentAddition.AddItemDef(PrimaryStockItemDef);
+            ItemAPI.Add(new CustomItem(PrimaryStockItemDef, CreateItemDisplayRules()));
 
             SecondaryStockItemDef = ScriptableObject.CreateInstance<ItemDef>();
             SecondaryStockItemDef.name = "ITEM_" + SecondaryStockItemLangTokenName;
@@ -75,7 +74,7 @@ namespace Inferno.Item
             LanguageAPI.Add("ITEM_" + SecondaryStockItemLangTokenName + "_PICKUP", SecondaryStockItemPickupDesc);
             LanguageAPI.Add("ITEM_" + SecondaryStockItemLangTokenName + "_DESCRIPTION", SecondaryStockItemFullDescription);
 
-            ContentAddition.AddItemDef(SecondaryStockItemDef);
+            ItemAPI.Add(new CustomItem(SecondaryStockItemDef, CreateItemDisplayRules()));
 
             UtilityStockItemDef = ScriptableObject.CreateInstance<ItemDef>();
             UtilityStockItemDef.name = "ITEM_" + UtilityStockItemLangTokenName;
@@ -90,7 +89,7 @@ namespace Inferno.Item
             LanguageAPI.Add("ITEM_" + UtilityStockItemLangTokenName + "_PICKUP", UtilityStockItemPickupDesc);
             LanguageAPI.Add("ITEM_" + UtilityStockItemLangTokenName + "_DESCRIPTION", UtilityStockItemFullDescription);
 
-            ContentAddition.AddItemDef(UtilityStockItemDef);
+            ItemAPI.Add(new CustomItem(UtilityStockItemDef, CreateItemDisplayRules()));
 
             SpecialStockItemDef = ScriptableObject.CreateInstance<ItemDef>();
             SpecialStockItemDef.name = "ITEM_" + SpecialStockItemLangTokenName;
@@ -105,7 +104,7 @@ namespace Inferno.Item
             LanguageAPI.Add("ITEM_" + SpecialStockItemLangTokenName + "_PICKUP", SpecialStockItemPickupDesc);
             LanguageAPI.Add("ITEM_" + SpecialStockItemLangTokenName + "_DESCRIPTION", SpecialStockItemFullDescription);
 
-            ContentAddition.AddItemDef(SpecialStockItemDef);
+            ItemAPI.Add(new CustomItem(SpecialStockItemDef, CreateItemDisplayRules()));
 
             AllCooldownItemDef = ScriptableObject.CreateInstance<ItemDef>();
             AllCooldownItemDef.name = "ITEM_" + AllCooldownItemLangTokenName;
@@ -120,7 +119,7 @@ namespace Inferno.Item
             LanguageAPI.Add("ITEM_" + AllCooldownItemLangTokenName + "_PICKUP", AllCooldownItemPickupDesc);
             LanguageAPI.Add("ITEM_" + AllCooldownItemLangTokenName + "_DESCRIPTION", AllCooldownItemFullDescription);
 
-            ContentAddition.AddItemDef(AllCooldownItemDef);
+            ItemAPI.Add(new CustomItem(AllCooldownItemDef, CreateItemDisplayRules()));
 
             On.RoR2.CharacterBody.RecalculateStats += AddStock;
             RecalculateStatsAPI.GetStatCoefficients += ChangeCDR;
@@ -161,6 +160,11 @@ namespace Inferno.Item
                     sl.special.SetBonusStockFromBody(sl.special.bonusStockFromBody + self.inventory.GetItemCount(SpecialStockItemDef));
                 }
             }
+        }
+
+        public static ItemDisplayRuleDict CreateItemDisplayRules()
+        {
+            return null;
         }
     }
 }
