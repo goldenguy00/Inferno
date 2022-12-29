@@ -16,8 +16,6 @@ namespace Inferno.Skill_Misc
 {
     public static class Hooks
     {
-        public static GameObject genericFoostepVFX = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Common/VFX/GenericLargeFootstepDust.prefab").WaitForCompletion();
-
         public static void SpeedUpProjectiles2(On.RoR2.Projectile.ProjectileController.orig_Start orig, ProjectileController self)
         {
             orig(self);
@@ -446,14 +444,12 @@ namespace Inferno.Skill_Misc
                     Vector3 b2 = new Vector3(direction.x, 0f, direction.z).normalized * 4.5f;
                     self.characterMotor.Motor.ForceUnground();
                     self.characterMotor.velocity = a + b + b2;
-                    EffectManager.SpawnEffect(genericFoostepVFX, new EffectData { _origin = self.characterBody.footPosition }, true);
                 }
-                /*
+
                 if (self.fixedAge > 0.5f && self.fixedAge < 2.1f)
                 {
                     self.attack.Fire(null);
                 }
-                */
             }
             orig(self);
 

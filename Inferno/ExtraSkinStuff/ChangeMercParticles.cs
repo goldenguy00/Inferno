@@ -566,34 +566,36 @@ namespace Inferno.ExtraSkinStuff
         {
             if (body.name == "MercBody(Clone)")
             {
-                Main.InfernoLogger.LogError("body skin index is " + body.skinIndex);
-                Main.InfernoLogger.LogError("SkinCatalog.FindLocalSkinIndexForBody(body.bodyIndex, InfernoSkinMod.InfernoSkinModPlugin.MercenarySkin) is " + SkinCatalog.FindLocalSkinIndexForBody(body.bodyIndex, InfernoSkinMod.InfernoSkinModPlugin.MercenarySkin));
+                // Main.InfernoLogger.LogError("body skin index is " + body.skinIndex);
+                // Main.InfernoLogger.LogError("SkinCatalog.FindLocalSkinIndexForBody(body.bodyIndex, InfernoSkinMod.InfernoSkinModPlugin.MercenarySkin) is " + SkinCatalog.FindLocalSkinIndexForBody(body.bodyIndex, InfernoSkinMod.InfernoSkinModPlugin.MercenarySkin));
                 if (SkinCatalog.FindLocalSkinIndexForBody(body.bodyIndex, InfernoSkinMod.InfernoSkinModPlugin.MercenarySkin) == body.skinIndex)
                 {
-                    Main.InfernoLogger.LogError("body skin index is equal to inferno mercenary skin");
+                    // Main.InfernoLogger.LogError("body skin index is equal to inferno mercenary skin");
                     var modelLocator = body.GetComponent<ModelLocator>();
                     if (modelLocator)
                     {
-                        Main.InfernoLogger.LogError("modelLocator found");
+                        // Main.InfernoLogger.LogError("modelLocator found");
                         var model = modelLocator.modelTransform;
                         if (model)
                         {
-                            Main.InfernoLogger.LogError("modelTransform found");
+                            // Main.InfernoLogger.LogError("modelTransform found");
                             var lightInfos = model.GetComponent<CharacterModel>().baseLightInfos;
 
                             var backLight = lightInfos[0].light;
-                            var darkBlue = new Color(0.03529411765f, 0f, 1f, 1f);
-                            backLight.set_color_Injected(ref darkBlue);
-                            // backLight.color = new Color32(9, 0, 255, 255);
+                            lightInfos[0].defaultColor = new Color32(38, 33, 176, 255);
+                            // var darkBlue = new Color(0.03529411765f, 0f, 1f, 1f);
+                            // backLight.set_color_Injected(ref darkBlue);
+                            backLight.color = new Color32(38, 33, 176, 255);
                             backLight.intensity = 2f;
                             backLight.range = 5f;
 
                             backLight.gameObject.GetComponent<FlickerLight>().enabled = false;
 
                             var swordLight = lightInfos[1].light;
-                            var pissYellow = new Color(1f, 0.6862745098f, 0f, 1f);
-                            swordLight.set_color_Injected(ref pissYellow);
-                            // swordLight.color = new Color32(255, 175, 0, 255);
+                            lightInfos[1].defaultColor = new Color32(255, 175, 0, 255);
+                            // var pissYellow = new Color(1f, 0.6862745098f, 0f, 1f);
+                            // swordLight.set_color_Injected(ref pissYellow);
+                            swordLight.color = new Color32(255, 175, 0, 255);
                             swordLight.intensity = 1.5f;
                             swordLight.range = 2f;
 
