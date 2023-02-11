@@ -502,6 +502,7 @@ namespace Inferno.Skill_Misc
         public static void HeadbuttState(On.EntityStates.BeetleMonster.HeadbuttState.orig_FixedUpdate orig, EntityStates.BeetleMonster.HeadbuttState self)
         {
             EntityStates.BeetleMonster.HeadbuttState.baseDuration = 2.7f;
+            EntityStates.BeetleMonster.HeadbuttState.damageCoefficient = 1.6f;
             if (self.isAuthority)
             {
                 if (self.modelAnimator && self.modelAnimator.GetFloat("Headbutt.hitBoxActive") > 0.5f)
