@@ -3,9 +3,9 @@ using System.Security.Permissions;
 
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 
-namespace Inferno._
+namespace Inferno
 {
-    internal class FuckPublicizeAllMyHomiesUsePublic2
+    internal class PeripheryV
     {
     }
 }

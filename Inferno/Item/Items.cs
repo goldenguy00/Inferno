@@ -24,8 +24,8 @@ namespace Inferno.Item
 
         private const string SpecialStockItemName = "Inferno: +1 Special Stock";
         private const string SpecialStockItemLangTokenName = "INFERNO_SPECIALSTOCK";
-        private const string SpecialStockItemPickupDesc = "Periphery V When";
-        private const string SpecialStockItemFullDescription = "??:??";
+        private const string SpecialStockItemPickupDesc = "Dracul Gras";
+        private const string SpecialStockItemFullDescription = "12:21";
 
         private const string AllCooldownItemName = "Inferno: +1% All CDR";
         private const string AllCooldownItemLangTokenName = "INFERNO_ALLCDR";

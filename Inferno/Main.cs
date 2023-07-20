@@ -40,7 +40,7 @@ namespace Inferno
 
         public const string PluginAuthor = "HIFU";
         public const string PluginName = "Inferno";
-        public const string PluginVersion = "1.6.1";
+        public const string PluginVersion = "1.6.2";
 
         public static DifficultyDef InfernoDiffDef;
 
@@ -149,6 +149,8 @@ namespace Inferno
 
             cloudRemap = Addressables.LoadAssetAsync<Shader>("RoR2/Base/Shaders/HGCloudRemap.shader").WaitForCompletion();
 
+            Body.Init();
+
             foreach (Material mat in inferno.LoadAllAssets<Material>())
             {
                 switch (mat.shader.name)
@@ -254,7 +256,7 @@ namespace Inferno
                 {
                     if (EnableStats.Value)
                     {
-                        CharacterBody.onBodyAwakeGlobal += Body.BodyChanges;
+                        CharacterBody.onBodyStartGlobal += Body.BodyChanges;
                         RecalculateStatsAPI.GetStatCoefficients += Hooks.RecalculateStatsAPI_GetStatCoefficients;
                     }
                     if (EnableAI.Value)
@@ -274,7 +276,7 @@ namespace Inferno
             };
             Run.onRunDestroyGlobal += (Run run) =>
             {
-                CharacterBody.onBodyAwakeGlobal -= Body.BodyChanges;
+                CharacterBody.onBodyStartGlobal -= Body.BodyChanges;
                 RecalculateStatsAPI.GetStatCoefficients -= Hooks.RecalculateStatsAPI_GetStatCoefficients;
                 CharacterMaster.onStartGlobal -= Master.MasterChanges;
                 IL.EntityStates.AI.Walker.LookBusy.OnEnter -= Hooks.LookBusy_OnEnter;
@@ -437,10 +439,6 @@ namespace Inferno
             {
                 ppHolder.SetActive(false);
             }
-
-            // update this
-            // disable merc glow
-            // add custom particles
 
             if (ism.InfernoSkinModPlugin.BanditSkin != null)
             {
