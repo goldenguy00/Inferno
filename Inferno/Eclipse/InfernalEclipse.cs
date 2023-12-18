@@ -11,7 +11,7 @@ namespace Inferno.Eclipse
 {
     public static class InfernalEclipse
     {
-        public static List<string> cachedDescriptions = new();
+        public static List<LanguageOverlay> languageOverlays = new();
 
         public static void Init()
         {
@@ -28,33 +28,18 @@ namespace Inferno.Eclipse
                 {
                     var j = i + 1;
                     var token = "ECLIPSE_" + j + "_DESCRIPTION";
-                    /*
-                    if (cachedDescriptions.Count < 16)
-                    {
-                        cachedDescriptions.Add(Language.GetString(token));
-                        Main.InfernoLogger.LogError("adding description to cache, i is " + i + ", j is " + j);
-                    }
-                    */
-                    LanguageOverlay languageOverlay = null;
 
                     if (Main.InfernalEclipse.Value)
                     {
-                        // Main.InfernoLogger.LogError("adding infernal descriptions ");
-                        languageOverlay = LanguageAPI.AddOverlay(token, Language.GetString(token).Replace("Monsoon", "<style=cDeath>Inferno</style>").Replace("\"You only celebrate in the light... because I allow it.\"", "<style=cDeath>\"You'll never bow to another god.</style>\"").Replace("<style=cIsHealth", "<style=cDeath"));
+                        languageOverlays.Add(AddOverlay(token, Language.GetString(token).Replace("Monsoon", "<style=cDeath>Inferno</style>").Replace("\"You only celebrate in the light... because I allow it.\"", "<style=cDeath>\"You'll never bow to another god.</style>\"").Replace("<style=cIsHealth", "<style=cDeath")));
                     }
                     else
                     {
-                        if (languageOverlay != null)
-                            languageOverlay.Remove();
-                        /*
-                        Main.InfernoLogger.LogError("adding cached descriptions back, cached descriptions index i is " + cachedDescriptions[i]);
-                        LanguageAPI.AddOverlay(token, cachedDescriptions[i]);
-                        */
+                        if (languageOverlays.Count > 0)
+                            languageOverlays[i].Remove();
                     }
                 }
-                // dont care about these rn cause the stack trace says it throws the thing that works so lmao
 
-                // InfernoLogger.LogError("eclipse world");
                 var menu = scene.GetRootGameObjects()[5];
                 var weatherEclipse = scene.GetRootGameObjects()[4];
                 if (weatherEclipse.name == "Weather, Eclipse")
