@@ -1,8 +1,9 @@
 ﻿using R2API;
 using RoR2;
-using System;
 using System.Collections.Generic;
-using System.Text;
+using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
 
 namespace Inferno.Eclipse
@@ -25,12 +26,12 @@ namespace Inferno.Eclipse
                 {
                     var j = i + 1;
                     var token = "ECLIPSE_" + j + "_DESCRIPTION";
-                    if (cachedDescriptions.Count <= 0)
+
+                    if (cachedDescriptions.Count < 16)
                     {
                         cachedDescriptions.Add(Language.GetString(token));
+                        Main.InfernoLogger.LogError("adding description to cache, i is " + i + ", j is " + j);
                     }
-
-                    Main.InfernoLogger.LogError("adding description to cache, i is " + i + ", j is " + j);
 
                     if (Main.InfernalEclipse.Value)
                     {
@@ -44,7 +45,7 @@ namespace Inferno.Eclipse
                     }
                 }
                 // dont care about these rn cause the stack trace says it throws the thing that works so lmao
-                /*
+
                 // InfernoLogger.LogError("eclipse world");
                 var menu = scene.GetRootGameObjects()[5];
                 var weatherEclipse = scene.GetRootGameObjects()[4];
@@ -60,7 +61,7 @@ namespace Inferno.Eclipse
                             var colorGrading = profile.GetSetting<ColorGrading>();
                             if (colorGrading)
                             {
-                                if (InfernalEclipse.Value)
+                                if (Main.InfernalEclipse.Value)
                                 {
                                     colorGrading.saturation.value = 50f;
                                     colorGrading.hueShift.overrideState = true;
@@ -101,10 +102,10 @@ namespace Inferno.Eclipse
                         {
                             var incomplete = "texDifficultyEclipse" + (i + 1) + "Icon.png";
                             var complete = "texDifficultyEclipse" + (i + 1) + "IconGold.png";
-                            if (InfernalEclipse.Value)
+                            if (Main.InfernalEclipse.Value)
                             {
-                                eclipseDifficultyMedalDisplay.incompleteSprite = inferno.LoadAsset<Sprite>("Assets/Inferno/" + incomplete);
-                                eclipseDifficultyMedalDisplay.completeSprite = inferno.LoadAsset<Sprite>("Assets/Inferno/" + complete);
+                                eclipseDifficultyMedalDisplay.incompleteSprite = Main.inferno.LoadAsset<Sprite>("Assets/Inferno/" + incomplete);
+                                eclipseDifficultyMedalDisplay.completeSprite = Main.inferno.LoadAsset<Sprite>("Assets/Inferno/" + complete);
                             }
                             else
                             {
@@ -116,7 +117,6 @@ namespace Inferno.Eclipse
                         }
                     }
                 }
-                */
             }
         }
     }
