@@ -40,7 +40,7 @@ namespace Inferno
 
         public const string PluginAuthor = "HIFU";
         public const string PluginName = "Inferno";
-        public const string PluginVersion = "1.6.2";
+        public const string PluginVersion = "1.7.0";
 
         public static DifficultyDef InfernoDiffDef;
 
@@ -92,6 +92,8 @@ namespace Inferno
         public static ConfigEntry<bool> Important { get; set; }
 
         public static ConfigEntry<bool> EnableMithrixChanges { get; set; }
+
+        public static ConfigEntry<bool> InfernalEclipse { get; set; }
 
         public static ColorGrading cg;
         public static Vignette vn;
@@ -190,6 +192,7 @@ namespace Inferno
             TeleporterSpeed = Config.Bind("General III", "Holdout Zone Speed", 30f, "Adds to the percent of holdout zone speed. Vanilla is 0");
             TeleporterSize = Config.Bind("General III", "Holdout Zone Radius", -30f, "Adds to the percent of holdout zone radius. Vanilla is 0");
             PillarSpeed = Config.Bind("General III", "Pillar Speed", 30f, "Adds to the percent of pillar speed. Vanilla is 0");
+            InfernalEclipse = Config.Bind("General III", "Set Inferno as Base Eclipse difficulty?", true, "Adds all Inferno modifiers to all Eclipse levels.");
             MithrixAS = Config.Bind("Bullshit", "Make Mithrix scale with Attack Speed?", false, "Vanilla is false");
 
             ColorGradingRedGain = Config.Bind("Post Processing", "Red Gain", 3.7f, "Vanilla is 0");
@@ -228,6 +231,7 @@ namespace Inferno
             ModSettingsManager.AddOption(new StepSliderOption(TeleporterSpeed, new StepSliderConfig() { increment = 3f, min = -99f, max = 99f }));
             ModSettingsManager.AddOption(new StepSliderOption(TeleporterSize, new StepSliderConfig() { increment = 3f, min = -70f, max = 99f }));
             ModSettingsManager.AddOption(new StepSliderOption(PillarSpeed, new StepSliderConfig() { increment = 3f, min = -99f, max = 99f }));
+            ModSettingsManager.AddOption(new CheckBoxOption(InfernalEclipse));
 
             ModSettingsManager.AddOption(new GenericButtonOption("", "General", "Note that upon hitting the Reset to default button, this menu does not visually update until you leave the settings and go back in.", "Reset to default", ResetConfig));
             ModSettingsManager.AddOption(new CheckBoxOption(MithrixAS, new CheckBoxConfig() { category = "Bullshit" }));
@@ -245,14 +249,15 @@ namespace Inferno
             uselessPieceOfShit.stockToConsume = 69;
             uselessPieceOfShit.requiredStock = 69;
 
-            // Thanks Mystic ! ! !
+            // Thanks Mystic ! ! ! UwU OwO <3 :3 x3
             On.RoR2.Language.GetLocalizedStringByToken += Language_GetLocalizedStringByToken;
+            Eclipse.InfernalEclipse.Init();
 
             Run.onRunSetRuleBookGlobal += ChangeAmbientCap;
             Run.onRunStartGlobal += (Run run) =>
             {
                 ShouldRun = false;
-                if (run.selectedDifficulty == InfernoDiffIndex)
+                if (run.selectedDifficulty == InfernoDiffIndex || (InfernalEclipse.Value && run.selectedDifficulty >= DifficultyIndex.Eclipse1))
                 {
                     if (EnableStats.Value)
                     {
@@ -482,17 +487,85 @@ namespace Inferno
             InfernoDiffDef.scalingValue = Scaling.Value / 50f;
             if (token == "INFERNO_DESCRIPTION")
             {
-                return "For veteran players. Every step requires utmost focus and awareness. You will be obliterated.<style=cStack>\n\n>Player Health Regeneration: <style=cIsHealth>-40%</style> \n" +
-                                                   (Scaling.Value <= 0f ? ">Difficulty Scaling: <style=cIsHealth>0%</style>\n" : (Scaling.Value == 100f ? "" : (Scaling.Value < 100f ? ">Difficulty Scaling: <style=cIsHealing>" + (Scaling.Value - 100f) + "% + Endless</style>\n" : ">Difficulty Scaling: <style=cIsHealth>+" + (Scaling.Value - 100f) + "% + Endless</style>\n"))) +
-                                                   ((LevelAttackSpeed.Value > 0f || LevelMoveSpeed.Value > 0f || LevelRegen.Value > 0f) ? ">Enemy Stats: <style=cIsHealth>Constantly Increasing</style>\n" : "") +
-                                                   (ProjectileSpeed.Value > 1f ? ">Enemy Projectile Speed: <style=cIsHealth>+" + ((ProjectileSpeed.Value - 1f) * 100f) + "%</style>\n" : "") +
-                                                   (EnableCDirector.Value ? ">Combat Director: <style=cIsHealth>Resourceful</style>\n" : "") +
-                                                   (LevelDiffBoost.Value > 0f ? ">Starting Difficulty: <style=cIsHealth>Increased</style>\n" : "") +
-                                                   (EnableSkills.Value || EnableStats.Value ? ">Enemy Abilities: <style=cIsHealth>Improved</style>\n" : "") +
-                                                   (EnableAI.Value ? ">Enemy AI: <style=cIsHealth>Refined" + (AIScaling.Value > 0f ? " + Evolving</style>\n" : "</style>\n") : "") +
-                                                   (MonsterLimit.Value != 40f ? (MonsterLimit.Value < 40f ? ">Enemy Cap: <style=cIsHealing>" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>\n" : ">Enemy Cap: <style=cIsHealth>+" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>\n") : "") +
-                                                   (AllyPermanentDamage.Value > 0f ? ">Allies receive <style=cIsHealth>permanent damage</style>\n" : "") +
+                return "For veteran players. Every step requires utmost focus and awareness. You will be obliterated.<style=cStack>\n\n>Player Health Regeneration: <style=cDeath>-40%</style> \n" +
+                                                   (Scaling.Value <= 0f ? ">Difficulty Scaling: <style=cDeath>0%</style>\n" : (Scaling.Value == 100f ? "" : (Scaling.Value < 100f ? ">Difficulty Scaling: <style=cIsHealing>" + (Scaling.Value - 100f) + "% + Endless</style>\n" : ">Difficulty Scaling: <style=cDeath>+" + (Scaling.Value - 100f) + "% + Endless</style>\n"))) +
+                                                   ((LevelAttackSpeed.Value > 0f || LevelMoveSpeed.Value > 0f || LevelRegen.Value > 0f) ? ">Enemy Stats: <style=cDeath>Constantly Increasing</style>\n" : "") +
+                                                   (ProjectileSpeed.Value > 1f ? ">Enemy Projectile Speed: <style=cDeath>+" + ((ProjectileSpeed.Value - 1f) * 100f) + "%</style>\n" : "") +
+                                                   (EnableCDirector.Value ? ">Combat Director: <style=cDeath>Resourceful</style>\n" : "") +
+                                                   (LevelDiffBoost.Value > 0f ? ">Starting Difficulty: <style=cDeath>Increased</style>\n" : "") +
+                                                   (EnableSkills.Value || EnableStats.Value ? ">Enemy Abilities: <style=cDeath>Improved</style>\n" : "") +
+                                                   (EnableAI.Value ? ">Enemy AI: <style=cDeath>Refined" + (AIScaling.Value > 0f ? " + Evolving</style>\n" : "</style>\n") : "") +
+                                                   (MonsterLimit.Value != 40f ? (MonsterLimit.Value < 40f ? ">Enemy Cap: <style=cIsHealing>" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>\n" : ">Enemy Cap: <style=cDeath>+" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>\n") : "") +
+                                                   (AllyPermanentDamage.Value > 0f ? ">Allies receive <style=cDeath>permanent damage</style>\n" : "") +
                                                    "</style>";
+            }
+            if (InfernalEclipse.Value)
+            {
+                switch (token)
+                {
+                    case "TITLE_ECLIPSE":
+                        return "<style=cDeath>Infernal Eclipse</style>";
+
+                    case "ECLIPSE_GAMEMODE_NAME":
+                        return "<style=cDeath>Infernal Eclipse</style>";
+
+                    case "TITLE_EXTRAGAMEMODE_DESC":
+                        return "Play alternate Risk of Rain 2 gamemodes, like Prismatic Trials and <style=cDeath>Infernal Eclipse</style>.";
+
+                    case "ECLIPSE_GAMEMODE_DESCRIPTION":
+                        return "<style=cDeath>Infernal Eclipse</style> is a gamemode that adds stacking challenge modifiers to your run.\n\nEach time you <style=cIsUtility>beat the game</style>, your <style=cDeath>Infernal Eclipse</style> level <style=cIsUtility>permanently increases</style> with that Survivor, up to a maximum of <style=cIsUtility>8</style> times.";
+
+                    case "ECLIPSE_GAMEMODE_START":
+                        return "Start <style=cDeath>Infernal Eclipse</style>";
+
+                    case "ECLIPSE_1_NAME":
+                        return "<style=cDeath>Infernal Eclipse (1)</style>";
+
+                    case "ECLIPSE_2_NAME":
+                        return "<style=cDeath>Infernal Eclipse (2)</style>";
+
+                    case "ECLIPSE_3_NAME":
+                        return "<style=cDeath>Infernal Eclipse (3)</style>";
+
+                    case "ECLIPSE_4_NAME":
+                        return "<style=cDeath>Infernal Eclipse (4)</style>";
+
+                    case "ECLIPSE_5_NAME":
+                        return "<style=cDeath>Infernal Eclipse (5)</style>";
+
+                    case "ECLIPSE_6_NAME":
+                        return "<style=cDeath>Infernal Eclipse (6)</style>";
+
+                    case "ECLIPSE_7_NAME":
+                        return "<style=cDeath>Infernal Eclipse (7)</style>";
+
+                    case "ECLIPSE_8_NAME":
+                        return "<style=cDeath>Infernal Eclipse (8)</style>";
+
+                    case "ECLIPSE_9_NAME":
+                        return "<style=cDeath>Infernal Eclipse (9)</style>";
+
+                    case "ECLIPSE_10_NAME":
+                        return "<style=cDeath>Infernal Eclipse (10)</style>";
+
+                    case "ECLIPSE_11_NAME":
+                        return "<style=cDeath>Infernal Eclipse (11)</style>";
+
+                    case "ECLIPSE_12_NAME":
+                        return "<style=cDeath>Infernal Eclipse (12)</style>";
+
+                    case "ECLIPSE_13_NAME":
+                        return "<style=cDeath>Infernal Eclipse (13)</style>";
+
+                    case "ECLIPSE_14_NAME":
+                        return "<style=cDeath>Infernal Eclipse (14)</style>";
+
+                    case "ECLIPSE_15_NAME":
+                        return "<style=cDeath>Infernal Eclipse (15)</style>";
+
+                    case "ECLIPSE_16_NAME":
+                        return "<style=cDeath>Infernal Eclipse (16)</style>";
+                }
             }
             return orig(self, token);
         }
@@ -509,42 +582,42 @@ namespace Inferno
         {
             InfernoDiffDef.scalingValue = Scaling.Value / 50f;
             LanguageAPI.Add("INFERNO_NAME", "Inferno");
-            LanguageAPI.Add("INFERNO_DESCRIPTION", "For veteran players. Every step requires utmost focus and awareness. You will be obliterated.<style=cStack>\n\n>Player Health Regeneration: <style=cIsHealth>-40%</style> \n" +
-                                                   (Scaling.Value <= 0f ? ">Difficulty Scaling: <style=cIsHealth>0%</style>\n" : (Scaling.Value == 100f ? "" : (Scaling.Value < 100f ? ">Difficulty Scaling: <style=cIsHealing>" + (Scaling.Value - 100f) + "% + Endless</style>\n" : ">Difficulty Scaling: <style=cIsHealth>+" + (Scaling.Value - 100f) + "% + Endless</style>\n"))) +
-                                                   ((LevelAttackSpeed.Value > 0f || LevelMoveSpeed.Value > 0f || LevelRegen.Value > 0f) ? ">Enemy Stats: <style=cIsHealth>Constantly Increasing</style>\n" : "") +
-                                                   (ProjectileSpeed.Value > 1f ? ">Enemy Projectile Speed: <style=cIsHealth>+" + ((ProjectileSpeed.Value - 1f) * 100f) + "%</style>\n" : "") +
-                                                   (EnableCDirector.Value ? ">Combat Director: <style=cIsHealth>Resourceful</style>\n" : "") +
-                                                   (LevelDiffBoost.Value > 0f ? ">Starting Difficulty: <style=cIsHealth>Increased</style>\n" : "") +
-                                                   (EnableSkills.Value || EnableStats.Value ? ">Enemy Abilities: <style=cIsHealth>Improved</style>\n" : "") +
-                                                   (EnableAI.Value ? ">Enemy AI: <style=cIsHealth>Refined" + (AIScaling.Value > 0f ? " + Evolving</style>\n" : "</style>\n") : "") +
-                                                   (MonsterLimit.Value != 40f ? (MonsterLimit.Value < 40f ? ">Enemy Cap: <style=cIsHealing>" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>" : ">Enemy Cap: <style=cIsHealth>+" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>\n") : "") +
-                                                   (AllyPermanentDamage.Value > 0f ? ">Allies receive <style=cIsHealth>permanent damage</style>\n" : "") +
+            LanguageAPI.Add("INFERNO_DESCRIPTION", "For veteran players. Every step requires utmost focus and awareness. You will be obliterated.<style=cStack>\n\n>Player Health Regeneration: <style=cDeath>-40%</style> \n" +
+                                                   (Scaling.Value <= 0f ? ">Difficulty Scaling: <style=cDeath>0%</style>\n" : (Scaling.Value == 100f ? "" : (Scaling.Value < 100f ? ">Difficulty Scaling: <style=cIsHealing>" + (Scaling.Value - 100f) + "% + Endless</style>\n" : ">Difficulty Scaling: <style=cDeath>+" + (Scaling.Value - 100f) + "% + Endless</style>\n"))) +
+                                                   ((LevelAttackSpeed.Value > 0f || LevelMoveSpeed.Value > 0f || LevelRegen.Value > 0f) ? ">Enemy Stats: <style=cDeath>Constantly Increasing</style>\n" : "") +
+                                                   (ProjectileSpeed.Value > 1f ? ">Enemy Projectile Speed: <style=cDeath>+" + ((ProjectileSpeed.Value - 1f) * 100f) + "%</style>\n" : "") +
+                                                   (EnableCDirector.Value ? ">Combat Director: <style=cDeath>Resourceful</style>\n" : "") +
+                                                   (LevelDiffBoost.Value > 0f ? ">Starting Difficulty: <style=cDeath>Increased</style>\n" : "") +
+                                                   (EnableSkills.Value || EnableStats.Value ? ">Enemy Abilities: <style=cDeath>Improved</style>\n" : "") +
+                                                   (EnableAI.Value ? ">Enemy AI: <style=cDeath>Refined" + (AIScaling.Value > 0f ? " + Evolving</style>\n" : "</style>\n") : "") +
+                                                   (MonsterLimit.Value != 40f ? (MonsterLimit.Value < 40f ? ">Enemy Cap: <style=cIsHealing>" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>" : ">Enemy Cap: <style=cDeath>+" + ((((float)MonsterLimit.Value - 40f) / 40f) * 100f) + "%</style>\n") : "") +
+                                                   (AllyPermanentDamage.Value > 0f ? ">Allies receive <style=cDeath>permanent damage</style>\n" : "") +
                                                    "</style>");
 
-            LanguageAPI.Add("ACHIEVEMENT_COMMANDOCLEARGAMEINFERNO_NAME", "Commando: Survival");
-            LanguageAPI.Add("ACHIEVEMENT_COMMANDOCLEARGAMEINFERNO_DESCRIPTION", "As Commando, beat the game or obliterate on Inferno.");
+            LanguageAPI.Add("ACHIEVEMENT_COMMANDOCLEARGAMEINFERNO_NAME", "Commando: <style=cDeath>Survival</style>");
+            LanguageAPI.Add("ACHIEVEMENT_COMMANDOCLEARGAMEINFERNO_DESCRIPTION", "As Commando, beat the game or obliterate on <style=cDeath>Inferno</style>.");
 
-            LanguageAPI.Add("ACHIEVEMENT_BANDIT2CLEARGAMEINFERNO_NAME", "Bandit: Survival");
-            LanguageAPI.Add("ACHIEVEMENT_BANDIT2CLEARGAMEINFERNO_DESCRIPTION", "As Bandit, beat the game or obliterate on Inferno.");
+            LanguageAPI.Add("ACHIEVEMENT_BANDIT2CLEARGAMEINFERNO_NAME", "Bandit: <style=cDeath>Survival</style>");
+            LanguageAPI.Add("ACHIEVEMENT_BANDIT2CLEARGAMEINFERNO_DESCRIPTION", "As Bandit, beat the game or obliterate on <style=cDeath>Inferno</style>.");
 
-            LanguageAPI.Add("ACHIEVEMENT_CAPTAINCLEARGAMEINFERNO_NAME", "Captain: Survival");
-            LanguageAPI.Add("ACHIEVEMENT_CAPTAINCLEARGAMEINFERNO_DESCRIPTION", "As Captain, beat the game or obliterate on Inferno.");
+            LanguageAPI.Add("ACHIEVEMENT_CAPTAINCLEARGAMEINFERNO_NAME", "Captain: <style=cDeath>Survival</style>");
+            LanguageAPI.Add("ACHIEVEMENT_CAPTAINCLEARGAMEINFERNO_DESCRIPTION", "As Captain, beat the game or obliterate on <style=cDeath>Inferno</style>.");
 
-            LanguageAPI.Add("ACHIEVEMENT_ARTIFICERCLEARGAMEINFERNO_NAME", "Artificer: Survival");
-            LanguageAPI.Add("ACHIEVEMENT_ARTIFICERCLEARGAMEINFERNO_DESCRIPTION", "As Artificer, beat the game or obliterate on Inferno.");
+            LanguageAPI.Add("ACHIEVEMENT_ARTIFICERCLEARGAMEINFERNO_NAME", "Artificer: <style=cDeath>Survival</style>");
+            LanguageAPI.Add("ACHIEVEMENT_ARTIFICERCLEARGAMEINFERNO_DESCRIPTION", "As Artificer, beat the game or obliterate on <style=cDeath>Inferno</style>.");
 
-            LanguageAPI.Add("ACHIEVEMENT_MERCENARYCLEARGAMEINFERNO_NAME", "Mercenary: Survival");
-            LanguageAPI.Add("ACHIEVEMENT_MERCENARYCLEARGAMEINFERNO_DESCRIPTION", "As Mercenary, beat the game or obliterate on Inferno.");
+            LanguageAPI.Add("ACHIEVEMENT_MERCENARYCLEARGAMEINFERNO_NAME", "Mercenary: <style=cDeath>Survival</style>");
+            LanguageAPI.Add("ACHIEVEMENT_MERCENARYCLEARGAMEINFERNO_DESCRIPTION", "As Mercenary, beat the game or obliterate on <style=cDeath>Inferno</style>.");
 
-            LanguageAPI.Add("ACHIEVEMENT_RAILGUNNERCLEARGAMEINFERNO_NAME", "Railgunner: Survival");
-            LanguageAPI.Add("ACHIEVEMENT_RAILGUNNERCLEARGAMEINFERNO_DESCRIPTION", "As Railgunner, beat the game or obliterate on Inferno.");
+            LanguageAPI.Add("ACHIEVEMENT_RAILGUNNERCLEARGAMEINFERNO_NAME", "Railgunner: <style=cDeath>Survival</style>");
+            LanguageAPI.Add("ACHIEVEMENT_RAILGUNNERCLEARGAMEINFERNO_DESCRIPTION", "As Railgunner, beat the game or obliterate on <style=cDeath>Inferno</style>.");
 
-            LanguageAPI.Add("DOTFLARE_SKIN_BCAPTAIN_NAME", "Erised");
-            LanguageAPI.Add("DOTFLARE_SKIN_CARTI_NAME", "Crystallized");
-            LanguageAPI.Add("DOTFLARE_SKIN_DBANDIT_NAME", "Deadshot");
-            LanguageAPI.Add("DOTFLARE_SKIN_HMERC_NAME", "Headless");
-            LanguageAPI.Add("DOTFLARE_SKIN_MMANDO_NAME", "Overgrown");
-            LanguageAPI.Add("DOTFLARE_SKIN_PGUNNER_NAME", "Buried");
+            LanguageAPI.Add("DOTFLARE_SKIN_BCAPTAIN_NAME", "<style=cDeath>Erised</style>");
+            LanguageAPI.Add("DOTFLARE_SKIN_CARTI_NAME", "<style=cDeath>Crystallized</style>");
+            LanguageAPI.Add("DOTFLARE_SKIN_DBANDIT_NAME", "<style=cDeath>Deadshot</style>");
+            LanguageAPI.Add("DOTFLARE_SKIN_HMERC_NAME", "<style=cDeath>Headless</style>");
+            LanguageAPI.Add("DOTFLARE_SKIN_MMANDO_NAME", "<style=cDeath>Overgrown</style>");
+            LanguageAPI.Add("DOTFLARE_SKIN_PGUNNER_NAME", "<style=cDeath>Buried</style>");
 
             CommandoSkin = ScriptableObject.CreateInstance<UnlockableDef>();
             CommandoSkin.cachedName = "Skins.Inferno_Commando";

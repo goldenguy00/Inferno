@@ -17,7 +17,7 @@ namespace Inferno.Stat_AI
                 var body = master.GetBody();
                 if (!body)
                 {
-                    Main.InfernoLogger.LogError("couldnt find body of " + master.name);
+                    // Main.InfernoLogger.LogError("couldnt find body of " + master.name);
                     return;
                 }
 
@@ -38,7 +38,7 @@ namespace Inferno.Stat_AI
                 var BaseAI = master.GetComponent<BaseAI>();
                 if (!BaseAI)
                 {
-                    Main.InfernoLogger.LogError("couldnt find baseai of " + master.name);
+                    // Main.InfernoLogger.LogError("couldnt find baseai of " + master.name);
                     return;
                 }
 
