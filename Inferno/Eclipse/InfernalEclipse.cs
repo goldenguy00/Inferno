@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
+using static R2API.LanguageAPI;
 
 namespace Inferno.Eclipse
 {
@@ -22,26 +23,33 @@ namespace Inferno.Eclipse
             var sceneName = scene.name;
             if (sceneName == "eclipseworld")
             {
+                Language.SetCurrentLanguage(Language.currentLanguageName);
                 for (int i = 0; i < 16; i++)
                 {
                     var j = i + 1;
                     var token = "ECLIPSE_" + j + "_DESCRIPTION";
-
+                    /*
                     if (cachedDescriptions.Count < 16)
                     {
                         cachedDescriptions.Add(Language.GetString(token));
                         Main.InfernoLogger.LogError("adding description to cache, i is " + i + ", j is " + j);
                     }
+                    */
+                    LanguageOverlay languageOverlay = null;
 
                     if (Main.InfernalEclipse.Value)
                     {
-                        Main.InfernoLogger.LogError("adding infernal descriptions ");
-                        LanguageAPI.Add(token, Language.GetString(token).Replace("Monsoon", "<style=cDeath>Inferno</style>").Replace("\"You only celebrate in the light... because I allow it.\"", "<style=cDeath>\"You'll never bow to another god.</style>\"").Replace("<style=cIsHealth", "<style=cDeath"));
+                        // Main.InfernoLogger.LogError("adding infernal descriptions ");
+                        languageOverlay = LanguageAPI.AddOverlay(token, Language.GetString(token).Replace("Monsoon", "<style=cDeath>Inferno</style>").Replace("\"You only celebrate in the light... because I allow it.\"", "<style=cDeath>\"You'll never bow to another god.</style>\"").Replace("<style=cIsHealth", "<style=cDeath"));
                     }
                     else
                     {
+                        if (languageOverlay != null)
+                            languageOverlay.Remove();
+                        /*
                         Main.InfernoLogger.LogError("adding cached descriptions back, cached descriptions index i is " + cachedDescriptions[i]);
-                        LanguageAPI.Add(token, cachedDescriptions[i]);
+                        LanguageAPI.AddOverlay(token, cachedDescriptions[i]);
+                        */
                     }
                 }
                 // dont care about these rn cause the stack trace says it throws the thing that works so lmao
