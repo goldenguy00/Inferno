@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -15,6 +16,7 @@ namespace Inferno.Eclipse
     public static class InfernalEclipse
     {
         public static List<LanguageOverlay> languageOverlays = new();
+        public static List<LanguageOverlay> languageOverlaysEE = new();
         public static Sprite cachedDifficultySprite;
 
         public static void Init()
@@ -49,12 +51,19 @@ namespace Inferno.Eclipse
                 if (Main.InfernalEclipse.Value)
                 {
                     languageOverlays.Add(AddOverlay(token, Language.GetString(token).Replace("Monsoon", "<style=cDeath>Inferno</style>").Replace("\"You only celebrate in the light... because I allow it.\"", "<style=cDeath>\"You'll never bow to another god.</style>\"").Replace("<style=cIsHealth", "<style=cDeath")));
-                    languageOverlays.Add(AddOverlay(e16token, Language.GetString(token).Replace("Monsoon", "<style=cDeath>Inferno</style>").Replace("\"You only celebrate in the light... because I allow it.\"", "<style=cDeath>\"You'll never bow to another god.</style>\"").Replace("<style=cIsHealth", "<style=cDeath")));
+                    languageOverlaysEE.Add(AddOverlay(e16token, Language.GetString(e16token).Replace("Monsoon", "<style=cDeath>Inferno</style>").Replace("\"You only celebrate in the light... because I allow it.\"", "<style=cDeath>\"You'll never bow to another god.</style>\"").Replace("<style=cIsHealth", "<style=cDeath")));
                 }
                 else
                 {
                     if (languageOverlays.Count > 0)
+                    {
                         languageOverlays[i].Remove();
+                    }
+
+                    if (languageOverlaysEE.Count > 0)
+                    {
+                        languageOverlaysEE[i].Remove();
+                    }
                 }
             }
 
@@ -113,18 +122,19 @@ namespace Inferno.Eclipse
             var prefix = "Assets/Inferno/";
             var prefix2 = "RoR2/Base/EclipseRun/";
             var e16 = trans.name.Contains("(Clone)");
-            for (int i = startingIndex; i < trans.childCount; i++)
+            for (int i = startingIndex; i < trans.childCount + startingIndex; i++)
             {
-                var child = trans.GetChild(i);
-                // InfernoLogger.LogError("child is " + child);
+                var j = e16 ? i : (i + 1);
+                var child = trans.GetChild(i - startingIndex);
                 var eclipseDifficultyMedalDisplay = child.GetComponent<EclipseDifficultyMedalDisplay>();
-                // InfernoLogger.LogError("eclipseDifficultyMedalDisplay is " + eclipseDifficultyMedalDisplay);
                 if (eclipseDifficultyMedalDisplay)
                 {
-                    var incomplete = "texDifficultyEclipse" + (i + 1) + "Icon.png";
-                    var complete = "texDifficultyEclipse" + (i + 1) + "IconGold.png";
-                    var e16Incomplete = "texFurryDifficultyEclipse" + (i + 1) + "Icon.png";
-                    var e16Complete = "texFurryDifficultyEclipse" + (i + 1) + "Icon.png";
+                    var incomplete = "texDifficultyEclipse" + j + "Icon.png";
+                    var complete = "texDifficultyEclipse" + j + "IconGold.png";
+                    var incompleteVanilla = "texDifficultyEclipse" + (i + 1) + "Icon.png";
+                    var completeVanilla = "texDifficultyEclipse" + (i + 1) + "IconGold.png";
+                    var e16Incomplete = "texFurryDifficultyEclipse" + j + "Icon.png";
+                    var e16Complete = "texFurryDifficultyEclipse" + j + "IconGold.png";
 
                     if (Main.InfernalEclipse.Value)
                     {
@@ -133,8 +143,8 @@ namespace Inferno.Eclipse
                     }
                     else
                     {
-                        eclipseDifficultyMedalDisplay.incompleteSprite = e16 ? Main.inferno.LoadAsset<Sprite>(prefix + e16Incomplete) : Addressables.LoadAssetAsync<Sprite>(prefix2 + incomplete).WaitForCompletion();
-                        eclipseDifficultyMedalDisplay.completeSprite = e16 ? Main.inferno.LoadAsset<Sprite>(prefix + e16Complete) : Addressables.LoadAssetAsync<Sprite>(prefix2 + complete).WaitForCompletion();
+                        eclipseDifficultyMedalDisplay.incompleteSprite = e16 ? Main.inferno.LoadAsset<Sprite>(prefix + e16Incomplete) : Addressables.LoadAssetAsync<Sprite>(prefix2 + incompleteVanilla).WaitForCompletion();
+                        eclipseDifficultyMedalDisplay.completeSprite = e16 ? Main.inferno.LoadAsset<Sprite>(prefix + e16Complete) : Addressables.LoadAssetAsync<Sprite>(prefix2 + completeVanilla).WaitForCompletion();
                     }
                     eclipseDifficultyMedalDisplay.Refresh();
                 }
@@ -148,6 +158,9 @@ namespace Inferno.Eclipse
             {
                 cachedDifficultySprite = self.GetComponent<Image>().sprite;
                 var difficultyDef = DifficultyCatalog.GetDifficultyDef(Run.instance.selectedDifficulty);
+                var eclipseLevel = Regex.Replace(difficultyDef.nameToken, "[^.0-9]", "");
+                int.TryParse(eclipseLevel, out var eclipseLevelAsNumber);
+
                 if (Main.InfernalEclipse.Value)
                 {
                     int currentEclipseLevel = 0;
@@ -163,10 +176,8 @@ namespace Inferno.Eclipse
                         }
                     }
                     currentEclipseLevel = Math.Min(currentEclipseLevel, Main.EclipseExtendedLoaded ? 16 : EclipseRun.maxEclipseLevel);
-                    var levelToCheck = Main.EclipseExtendedLoaded ? 16 : 8;
-                    var eclipseLevel = Regex.Replace(difficultyDef.nameToken, "[^.0-9]", "");
 
-                    var isCompleted = levelToCheck <= currentEclipseLevel;
+                    var isCompleted = eclipseLevelAsNumber <= currentEclipseLevel;
 
                     if (isCompleted)
                     {
@@ -177,9 +188,17 @@ namespace Inferno.Eclipse
                         self.GetComponent<Image>().sprite = Main.inferno.LoadAsset<Sprite>("Assets/Inferno/texDifficultyEclipse" + eclipseLevel + "Icon.png");
                     }
                 }
-                else
+
+                if (!Main.InfernalEclipse.Value)
                 {
-                    self.GetComponent<Image>().sprite = difficultyDef.GetIconSprite();
+                    if (eclipseLevelAsNumber > 8)
+                    {
+                        self.GetComponent<Image>().sprite = Main.inferno.LoadAsset<Sprite>("Assets/Inferno/texFurryDifficultyEclipse" + eclipseLevel + "Icon.png");
+                    }
+                    else
+                    {
+                        self.GetComponent<Image>().sprite = difficultyDef.GetIconSprite();
+                    }
                 }
             }
         }

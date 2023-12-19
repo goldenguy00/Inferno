@@ -520,7 +520,7 @@ namespace Inferno
                         return "Play alternate Risk of Rain 2 gamemodes, like Prismatic Trials and <style=cDeath>Infernal Eclipse</style>.";
 
                     case "ECLIPSE_GAMEMODE_DESCRIPTION":
-                        return "<style=cDeath>Infernal Eclipse</style> is a gamemode that adds stacking challenge modifiers to your run.\n\nEach time you <style=cIsUtility>beat the game</style>, your <style=cDeath>Infernal Eclipse</style> level <style=cIsUtility>permanently increases</style> with that Survivor, up to a maximum of <style=cIsUtility>8</style> times.";
+                        return "<style=cDeath>Infernal Eclipse</style> is a gamemode that adds stacking challenge modifiers to your run.\n\nEach time you <style=cDeath>beat the game</style>, your <style=cDeath>Infernal Eclipse</style> level <style=cDeath>permanently increases</style> with that Survivor, up to a maximum of <style=cDeath>" + (EclipseExtendedLoaded ? "16" : "8") + "</style> times.";
 
                     case "ECLIPSE_GAMEMODE_START":
                         return "Start <style=cDeath>Infernal Eclipse</style>";
@@ -549,28 +549,28 @@ namespace Inferno
                     case "ECLIPSE_8_NAME":
                         return "<style=cDeath>Infernal Eclipse (8)</style>";
 
-                    case "GROOVYECLIPSE_9_NAME":
+                    case "GROOVYECLIPSE_1_NAME":
                         return "<style=cDeath>Infernal Eclipse (9)</style>";
 
-                    case "GROOVYECLIPSE_10_NAME":
+                    case "GROOVYECLIPSE_2_NAME":
                         return "<style=cDeath>Infernal Eclipse (10)</style>";
 
-                    case "GROOVYECLIPSE_11_NAME":
+                    case "GROOVYECLIPSE_3_NAME":
                         return "<style=cDeath>Infernal Eclipse (11)</style>";
 
-                    case "GROOVYECLIPSE_12_NAME":
+                    case "GROOVYECLIPSE_4_NAME":
                         return "<style=cDeath>Infernal Eclipse (12)</style>";
 
-                    case "GROOVYECLIPSE_13_NAME":
+                    case "GROOVYECLIPSE_5_NAME":
                         return "<style=cDeath>Infernal Eclipse (13)</style>";
 
-                    case "GROOVYECLIPSE_14_NAME":
+                    case "GROOVYECLIPSE_6_NAME":
                         return "<style=cDeath>Infernal Eclipse (14)</style>";
 
-                    case "GROOVYECLIPSE_15_NAME":
+                    case "GROOVYECLIPSE_7_NAME":
                         return "<style=cDeath>Infernal Eclipse (15)</style>";
 
-                    case "GROOVYECLIPSE_16_NAME":
+                    case "GROOVYECLIPSE_8_NAME":
                         return "<style=cDeath>Infernal Eclipse (16)</style>";
                 }
             }
