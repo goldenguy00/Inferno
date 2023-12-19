@@ -157,9 +157,19 @@ namespace Inferno.Eclipse
             if (Run.instance)
             {
                 cachedDifficultySprite = self.GetComponent<Image>().sprite;
-                var difficultyDef = DifficultyCatalog.GetDifficultyDef(Run.instance.selectedDifficulty);
+                var difficultyIndex = Run.instance.selectedDifficulty;
+                var difficultyDef = DifficultyCatalog.GetDifficultyDef(difficultyIndex);
+
+                var e16 = difficultyIndex > DifficultyIndex.Eclipse8;
+
                 var eclipseLevel = Regex.Replace(difficultyDef.nameToken, "[^.0-9]", "");
                 int.TryParse(eclipseLevel, out var eclipseLevelAsNumber);
+                if (e16)
+                {
+                    eclipseLevelAsNumber += 8;
+                }
+
+                Main.InfernoLogger.LogError("eclipse level as number is " + eclipseLevelAsNumber);
 
                 if (Main.InfernalEclipse.Value)
                 {
@@ -176,16 +186,17 @@ namespace Inferno.Eclipse
                         }
                     }
                     currentEclipseLevel = Math.Min(currentEclipseLevel, Main.EclipseExtendedLoaded ? 16 : EclipseRun.maxEclipseLevel);
+                    Main.InfernoLogger.LogError("current eclipse level after everything is " + currentEclipseLevel);
 
-                    var isCompleted = eclipseLevelAsNumber <= currentEclipseLevel;
+                    var isCompleted = eclipseLevelAsNumber >= currentEclipseLevel;
 
                     if (isCompleted)
                     {
-                        self.GetComponent<Image>().sprite = Main.inferno.LoadAsset<Sprite>("Assets/Inferno/texDifficultyEclipse" + eclipseLevel + "IconGold.png");
+                        self.GetComponent<Image>().sprite = Main.inferno.LoadAsset<Sprite>("Assets/Inferno/texDifficultyEclipse" + eclipseLevelAsNumber + "IconGold.png");
                     }
                     else
                     {
-                        self.GetComponent<Image>().sprite = Main.inferno.LoadAsset<Sprite>("Assets/Inferno/texDifficultyEclipse" + eclipseLevel + "Icon.png");
+                        self.GetComponent<Image>().sprite = Main.inferno.LoadAsset<Sprite>("Assets/Inferno/texDifficultyEclipse" + eclipseLevelAsNumber + "Icon.png");
                     }
                 }
 
@@ -193,7 +204,7 @@ namespace Inferno.Eclipse
                 {
                     if (eclipseLevelAsNumber > 8)
                     {
-                        self.GetComponent<Image>().sprite = Main.inferno.LoadAsset<Sprite>("Assets/Inferno/texFurryDifficultyEclipse" + eclipseLevel + "Icon.png");
+                        self.GetComponent<Image>().sprite = Main.inferno.LoadAsset<Sprite>("Assets/Inferno/texFurryDifficultyEclipse" + eclipseLevelAsNumber + "Icon.png");
                     }
                     else
                     {
