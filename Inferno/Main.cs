@@ -33,6 +33,7 @@ namespace Inferno
     [BepInDependency(ItemAPI.PluginGUID)]
     [BepInDependency("com.rune580.riskofoptions", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.RiskyLives.RiskyMod", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.groovesalad.EclipseExtended", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     public class Main : BaseUnityPlugin
     {
@@ -40,7 +41,7 @@ namespace Inferno
 
         public const string PluginAuthor = "HIFU";
         public const string PluginName = "Inferno";
-        public const string PluginVersion = "1.7.0";
+        public const string PluginVersion = "1.7.1";
 
         public static DifficultyDef InfernoDiffDef;
 
@@ -143,9 +144,13 @@ namespace Inferno
 
         private static readonly string s = "Assets/InfernoSkins/";
 
+        public static bool EclipseExtendedLoaded = false;
+
         public void Awake()
         {
             Main.InfernoLogger = base.Logger;
+
+            EclipseExtendedLoaded = BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.groovesalad.EclipseExtended");
 
             inferno = AssetBundle.LoadFromFile(Assembly.GetExecutingAssembly().Location.Replace("Inferno.dll", "inferno"));
 
@@ -275,6 +280,7 @@ namespace Inferno
                     {
                         HookBehavior.ApplyHooks();
                     }
+                    On.RoR2.UI.CurrentDifficultyIconController.Start += Eclipse.InfernalEclipse.CurrentDifficultyIconController_Start;
                     IL.RoR2.Run.RecalculateDifficultyCoefficentInternal += Hooks.Ambient;
                     ShouldRun = true;
                 }
@@ -289,6 +295,7 @@ namespace Inferno
                 IL.EntityStates.AI.Walker.Wander.PickNewTargetLookPosition -= Hooks.Wander_PickNewTargetLookPosition;
                 HookBehavior.UndoHooks();
                 IL.RoR2.Run.RecalculateDifficultyCoefficentInternal -= Hooks.Ambient;
+                On.RoR2.UI.CurrentDifficultyIconController.Start -= Eclipse.InfernalEclipse.CurrentDifficultyIconController_Start;
                 ShouldRun = false;
             };
 
@@ -542,28 +549,28 @@ namespace Inferno
                     case "ECLIPSE_8_NAME":
                         return "<style=cDeath>Infernal Eclipse (8)</style>";
 
-                    case "ECLIPSE_9_NAME":
+                    case "GROOVYECLIPSE_9_NAME":
                         return "<style=cDeath>Infernal Eclipse (9)</style>";
 
-                    case "ECLIPSE_10_NAME":
+                    case "GROOVYECLIPSE_10_NAME":
                         return "<style=cDeath>Infernal Eclipse (10)</style>";
 
-                    case "ECLIPSE_11_NAME":
+                    case "GROOVYECLIPSE_11_NAME":
                         return "<style=cDeath>Infernal Eclipse (11)</style>";
 
-                    case "ECLIPSE_12_NAME":
+                    case "GROOVYECLIPSE_12_NAME":
                         return "<style=cDeath>Infernal Eclipse (12)</style>";
 
-                    case "ECLIPSE_13_NAME":
+                    case "GROOVYECLIPSE_13_NAME":
                         return "<style=cDeath>Infernal Eclipse (13)</style>";
 
-                    case "ECLIPSE_14_NAME":
+                    case "GROOVYECLIPSE_14_NAME":
                         return "<style=cDeath>Infernal Eclipse (14)</style>";
 
-                    case "ECLIPSE_15_NAME":
+                    case "GROOVYECLIPSE_15_NAME":
                         return "<style=cDeath>Infernal Eclipse (15)</style>";
 
-                    case "ECLIPSE_16_NAME":
+                    case "GROOVYECLIPSE_16_NAME":
                         return "<style=cDeath>Infernal Eclipse (16)</style>";
                 }
             }
