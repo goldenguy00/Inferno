@@ -154,7 +154,7 @@ namespace Inferno.Eclipse
         public static void CurrentDifficultyIconController_Start(On.RoR2.UI.CurrentDifficultyIconController.orig_Start orig, MonoBehaviour self)
         {
             orig(self);
-            /*
+
             if (Run.instance)
             {
                 cachedDifficultySprite = self.GetComponent<Image>().sprite;
@@ -213,7 +213,6 @@ namespace Inferno.Eclipse
                     }
                 }
             }
-            */
         }
     }
 }

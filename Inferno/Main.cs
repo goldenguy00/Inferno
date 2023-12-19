@@ -145,12 +145,15 @@ namespace Inferno
         private static readonly string s = "Assets/InfernoSkins/";
 
         public static bool EclipseExtendedLoaded = false;
+        public static string eclipseDescString;
 
         public void Awake()
         {
             Main.InfernoLogger = base.Logger;
 
             EclipseExtendedLoaded = BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.groovesalad.EclipseExtended");
+
+            eclipseDescString = "<style=cDeath>Infernal Eclipse</style> is a gamemode that adds stacking challenge modifiers to your run.\n\nEach time you <style=cDeath>beat the game</style>, your <style=cDeath>Infernal Eclipse</style> level <style=cDeath>permanently increases</style> with that Survivor, up to a maximum of <style=cDeath>" + (EclipseExtendedLoaded ? "16" : "8") + "</style> times.";
 
             inferno = AssetBundle.LoadFromFile(Assembly.GetExecutingAssembly().Location.Replace("Inferno.dll", "inferno"));
 
@@ -256,7 +259,7 @@ namespace Inferno
 
             // Thanks Mystic ! ! ! UwU OwO <3 :3 x3
             On.RoR2.Language.GetLocalizedStringByToken += Language_GetLocalizedStringByToken;
-            Eclipse.InfernalEclipse.Init();
+            // Eclipse.InfernalEclipse.Init();
 
             Run.onRunSetRuleBookGlobal += ChangeAmbientCap;
             Run.onRunStartGlobal += (Run run) =>
@@ -520,7 +523,7 @@ namespace Inferno
                         return "Play alternate Risk of Rain 2 gamemodes, like Prismatic Trials and <style=cDeath>Infernal Eclipse</style>.";
 
                     case "ECLIPSE_GAMEMODE_DESCRIPTION":
-                        return "<style=cDeath>Infernal Eclipse</style> is a gamemode that adds stacking challenge modifiers to your run.\n\nEach time you <style=cDeath>beat the game</style>, your <style=cDeath>Infernal Eclipse</style> level <style=cDeath>permanently increases</style> with that Survivor, up to a maximum of <style=cDeath>" + (EclipseExtendedLoaded ? "16" : "8") + "</style> times.";
+                        return eclipseDescString;
 
                     case "ECLIPSE_GAMEMODE_START":
                         return "Start <style=cDeath>Infernal Eclipse</style>";
