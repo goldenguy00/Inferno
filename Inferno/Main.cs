@@ -549,28 +549,28 @@ namespace Inferno
                     case "ECLIPSE_8_NAME":
                         return "<style=cDeath>Infernal Eclipse (8)</style>";
 
-                    case "GROOVYECLIPSE_1_NAME":
+                    case "GROOVYECLIPSE_0_NAME":
                         return "<style=cDeath>Infernal Eclipse (9)</style>";
 
-                    case "GROOVYECLIPSE_2_NAME":
+                    case "GROOVYECLIPSE_1_NAME":
                         return "<style=cDeath>Infernal Eclipse (10)</style>";
 
-                    case "GROOVYECLIPSE_3_NAME":
+                    case "GROOVYECLIPSE_2_NAME":
                         return "<style=cDeath>Infernal Eclipse (11)</style>";
 
-                    case "GROOVYECLIPSE_4_NAME":
+                    case "GROOVYECLIPSE_3_NAME":
                         return "<style=cDeath>Infernal Eclipse (12)</style>";
 
-                    case "GROOVYECLIPSE_5_NAME":
+                    case "GROOVYECLIPSE_4_NAME":
                         return "<style=cDeath>Infernal Eclipse (13)</style>";
 
-                    case "GROOVYECLIPSE_6_NAME":
+                    case "GROOVYECLIPSE_5_NAME":
                         return "<style=cDeath>Infernal Eclipse (14)</style>";
 
-                    case "GROOVYECLIPSE_7_NAME":
+                    case "GROOVYECLIPSE_6_NAME":
                         return "<style=cDeath>Infernal Eclipse (15)</style>";
 
-                    case "GROOVYECLIPSE_8_NAME":
+                    case "GROOVYECLIPSE_7_NAME":
                         return "<style=cDeath>Infernal Eclipse (16)</style>";
                 }
             }

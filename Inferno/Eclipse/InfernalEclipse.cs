@@ -41,7 +41,6 @@ namespace Inferno.Eclipse
         public static IEnumerator JankAsHell(Scene scene)
         {
             yield return new WaitForSeconds(0.15f);
-            Language.SetCurrentLanguage(Language.currentLanguageName);
             for (int i = 0; i < 16; i++)
             {
                 var j = i + 1;
@@ -114,6 +113,7 @@ namespace Inferno.Eclipse
                     SwapIcons(9, horizontalLayoutClone);
                 }
             }
+            Language.SetCurrentLanguage(Language.currentLanguageName);
             yield return null;
         }
 
