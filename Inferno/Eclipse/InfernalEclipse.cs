@@ -33,7 +33,7 @@ namespace Inferno.Eclipse
                 if (pp)
                 {
                     var postProcessVolume = pp.GetComponent<PostProcessVolume>();
-                    postProcessVolume.StartCoroutine(JankAsHell(scene));
+                    // postProcessVolume.StartCoroutine(JankAsHell(scene));
                 }
             }
         }
@@ -154,6 +154,7 @@ namespace Inferno.Eclipse
         public static void CurrentDifficultyIconController_Start(On.RoR2.UI.CurrentDifficultyIconController.orig_Start orig, MonoBehaviour self)
         {
             orig(self);
+            /*
             if (Run.instance)
             {
                 cachedDifficultySprite = self.GetComponent<Image>().sprite;
@@ -212,6 +213,7 @@ namespace Inferno.Eclipse
                     }
                 }
             }
+            */
         }
     }
 }
