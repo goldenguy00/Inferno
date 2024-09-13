@@ -51,9 +51,9 @@ namespace Inferno.Stat_AI
             On.RoR2.BodyCatalog.Init += BodyCatalog_Init;
         }
 
-        private static void BodyCatalog_Init(On.RoR2.BodyCatalog.orig_Init orig)
+        private static System.Collections.IEnumerator BodyCatalog_Init(On.RoR2.BodyCatalog.orig_Init orig)
         {
-            orig();
+            yield return orig();
             beetleQueenIndex = BodyCatalog.FindBodyIndex("BeetleQueen2Body");
             clayDunestriderIndex = BodyCatalog.FindBodyIndex("ClayBossBody");
             grandparentIndex = BodyCatalog.FindBodyIndex("GrandParentBody");

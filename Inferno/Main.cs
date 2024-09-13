@@ -41,7 +41,7 @@ namespace Inferno
 
         public const string PluginAuthor = "HIFU";
         public const string PluginName = "Inferno";
-        public const string PluginVersion = "1.7.1";
+        public const string PluginVersion = "1.7.3";
 
         public static DifficultyDef InfernoDiffDef;
 
@@ -147,11 +147,15 @@ namespace Inferno
         public static bool EclipseExtendedLoaded = false;
         public static string eclipseDescString;
 
+        public static Color32 infernoColor = new Color32(105, 30, 37, 255);
+
         public void Awake()
         {
             Main.InfernoLogger = base.Logger;
 
-            EclipseExtendedLoaded = BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.groovesalad.EclipseExtended");
+            On.RoR2.Networking.NetworkManagerSystemSteam.OnClientConnect += (s, u, t) => { };
+
+            EclipseExtendedLoaded = false; /*BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.groovesalad.EclipseExtended");*/
 
             eclipseDescString = "<style=cDeath>Infernal Eclipse</style> is a gamemode that adds stacking challenge modifiers to your run.\n\nEach time you <style=cDeath>beat the game</style>, your <style=cDeath>Infernal Eclipse</style> level <style=cDeath>permanently increases</style> with that Survivor, up to a maximum of <style=cDeath>" + (EclipseExtendedLoaded ? "16" : "8") + "</style> times.";
 
@@ -257,9 +261,8 @@ namespace Inferno
             uselessPieceOfShit.stockToConsume = 69;
             uselessPieceOfShit.requiredStock = 69;
 
-            // Thanks Mystic ! ! ! UwU OwO <3 :3 x3
             On.RoR2.Language.GetLocalizedStringByToken += Language_GetLocalizedStringByToken;
-            // Eclipse.InfernalEclipse.Init();
+            Eclipse.InfernalEclipse.Init();
 
             Run.onRunSetRuleBookGlobal += ChangeAmbientCap;
             Run.onRunStartGlobal += (Run run) =>

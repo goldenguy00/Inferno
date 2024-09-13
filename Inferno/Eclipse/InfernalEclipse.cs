@@ -1,4 +1,5 @@
 ﻿using RoR2;
+using RoR2.SurvivorMannequins;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -33,9 +34,45 @@ namespace Inferno.Eclipse
                 if (pp)
                 {
                     var postProcessVolume = pp.GetComponent<PostProcessVolume>();
-                    // postProcessVolume.StartCoroutine(JankAsHell(scene));
+                    postProcessVolume.StartCoroutine(JankAsHell(scene));
                 }
             }
+            if (sceneName == "lobby")
+            {
+                Main.InfernoLogger.LogError("in lobby");
+                var mannequin = scene.GetRootGameObjects()[0];
+                if (mannequin)
+                {
+                    Main.InfernoLogger.LogError("got mannequin");
+                    var mannequinCont = mannequin.GetComponent<SurvivorMannequinDioramaController>();
+                    Main.InfernoLogger.LogError("mannequin controller is " + mannequinCont);
+                    mannequinCont.StartCoroutine(SetUpIcon());
+                }
+            }
+        }
+
+        public static IEnumerator SetUpIcon()
+        {
+            Main.InfernoLogger.LogError("running SetUpIcon()");
+            yield return new WaitForSeconds(0.2f);
+            var characterSelectUIMain = GameObject.Find("CharacterSelectUIMain(Clone)").GetComponent<RectTransform>();
+            var content = characterSelectUIMain.Find("SafeArea/RightHandPanel/RuleVerticalLayout/RuleBookViewerVertical/Viewport/Content");
+            var firstRuleBookCategoryPrefab = content.GetChild(1);
+            var choiceContainer = firstRuleBookCategoryPrefab.Find("StripContainer/RuleStripPrefab(Clone)/ChoiceContainer");
+            var choice = choiceContainer.GetChild(0);
+            var choiceName = choice.name;
+            Main.InfernoLogger.LogError(choiceName);
+            if (choiceName.ToLower().Contains("eclipse"))
+            {
+                var eclipseLevel = choiceName.Replace("Choice (Difficulty.Eclipse", "").Replace(")", "");
+                Main.InfernoLogger.LogError("eclipse level is " + eclipseLevel);
+                var eclipseLevelAsInt = int.Parse(eclipseLevel);
+                Main.InfernoLogger.LogError("eclipse level as int is " + eclipseLevelAsInt);
+                // eclipseLevelAsInt = Math.Max(eclipseLevelAsInt, 8);
+                var choiceImage = choice.Find("Button/Icon").GetComponent<Image>();
+                choiceImage.sprite = Main.inferno.LoadAsset<Sprite>("Assets/Inferno/texDifficultyEclipse" + eclipseLevelAsInt + "IconGold.png");
+            }
+            yield return null;
         }
 
         public static IEnumerator JankAsHell(Scene scene)
@@ -85,11 +122,15 @@ namespace Inferno.Eclipse
                                 colorGrading.saturation.value = 50f;
                                 colorGrading.hueShift.overrideState = true;
                                 colorGrading.hueShift.value = 143f;
+                                pp.gameObject.SetActive(false);
+                                pp.gameObject.SetActive(true);
                             }
                             else
                             {
                                 colorGrading.saturation.value = -23f;
                                 colorGrading.hueShift.value = 0f;
+                                pp.gameObject.SetActive(false);
+                                pp.gameObject.SetActive(true);
                             }
                         }
                     }
@@ -100,6 +141,15 @@ namespace Inferno.Eclipse
                 var trans = menu.transform;
                 var eclipseRunMenu = trans.Find("EclipseRunMenu");
                 var mainPanel = eclipseRunMenu.Find("Main Panel");
+
+                var genericMenuButtonPanel = mainPanel.Find("GenericMenuButtonPanel");
+                var juicePanel = genericMenuButtonPanel.Find("JuicePanel");
+                var readyButton = juicePanel.Find("ReadyButton");
+                if (readyButton)
+                {
+                    readyButton.GetComponent<Image>().color = new Color32(172, 27, 42, 255);
+                }
+
                 var rightPanel = mainPanel.Find("RightPanel");
                 var medalPanel = rightPanel.Find("MedalPanel");
                 var horizontalLayout = medalPanel.Find("HorizontalLayout");
@@ -107,11 +157,13 @@ namespace Inferno.Eclipse
                 {
                     SwapIcons(0, horizontalLayout);
                 }
+                /*
                 var horizontalLayoutClone = medalPanel.Find("HorizontalLayout(Clone)");
                 if (horizontalLayoutClone)
                 {
                     SwapIcons(9, horizontalLayoutClone);
                 }
+                */
             }
             Language.SetCurrentLanguage(Language.currentLanguageName);
             yield return null;
@@ -146,6 +198,8 @@ namespace Inferno.Eclipse
                         eclipseDifficultyMedalDisplay.incompleteSprite = e16 ? Main.inferno.LoadAsset<Sprite>(prefix + e16Incomplete) : Addressables.LoadAssetAsync<Sprite>(prefix2 + incompleteVanilla).WaitForCompletion();
                         eclipseDifficultyMedalDisplay.completeSprite = e16 ? Main.inferno.LoadAsset<Sprite>(prefix + e16Complete) : Addressables.LoadAssetAsync<Sprite>(prefix2 + completeVanilla).WaitForCompletion();
                     }
+                    eclipseDifficultyMedalDisplay.gameObject.SetActive(false);
+                    eclipseDifficultyMedalDisplay.gameObject.SetActive(true);
                     eclipseDifficultyMedalDisplay.Refresh();
                 }
             }
@@ -159,57 +213,60 @@ namespace Inferno.Eclipse
             {
                 cachedDifficultySprite = self.GetComponent<Image>().sprite;
                 var difficultyIndex = Run.instance.selectedDifficulty;
-                var difficultyDef = DifficultyCatalog.GetDifficultyDef(difficultyIndex);
-
-                var e16 = difficultyIndex > DifficultyIndex.Eclipse8;
-
-                var eclipseLevel = Regex.Replace(difficultyDef.nameToken, "[^.0-9]", "");
-                int.TryParse(eclipseLevel, out var eclipseLevelAsNumber);
-                if (e16)
+                if (difficultyIndex >= DifficultyIndex.Eclipse1)
                 {
-                    eclipseLevelAsNumber += 8;
-                }
+                    var difficultyDef = DifficultyCatalog.GetDifficultyDef(difficultyIndex);
 
-                Main.InfernoLogger.LogError("eclipse level as number is " + eclipseLevelAsNumber);
+                    var e16 = false; /*difficultyIndex > DifficultyIndex.Eclipse8;*/
 
-                if (Main.InfernalEclipse.Value)
-                {
-                    int currentEclipseLevel = 0;
-                    var readonlyNetworkUsers = NetworkUser.readOnlyInstancesList;
-                    for (int i = 0; i < readonlyNetworkUsers.Count; i++)
+                    var eclipseLevel = Regex.Replace(difficultyDef.nameToken, "[^.0-9]", "");
+                    int.TryParse(eclipseLevel, out var eclipseLevelAsNumber);
+                    if (e16)
                     {
-                        var networkUser = readonlyNetworkUsers[i];
-                        var survivorPreference = networkUser.GetSurvivorPreference();
-                        if (survivorPreference)
+                        eclipseLevelAsNumber += 8;
+                    }
+
+                    Main.InfernoLogger.LogError("eclipse level as number is " + eclipseLevelAsNumber);
+
+                    if (Main.InfernalEclipse.Value)
+                    {
+                        int currentEclipseLevel = 0;
+                        var readonlyNetworkUsers = NetworkUser.readOnlyInstancesList;
+                        for (int i = 0; i < readonlyNetworkUsers.Count; i++)
                         {
-                            var networkUserEclipseLevel = EclipseRun.GetNetworkUserSurvivorCompletedEclipseLevel(networkUser, survivorPreference) + 1;
-                            currentEclipseLevel = ((currentEclipseLevel > 0) ? Math.Min(currentEclipseLevel, networkUserEclipseLevel) : networkUserEclipseLevel);
+                            var networkUser = readonlyNetworkUsers[i];
+                            var survivorPreference = networkUser.GetSurvivorPreference();
+                            if (survivorPreference)
+                            {
+                                var networkUserEclipseLevel = EclipseRun.GetNetworkUserSurvivorCompletedEclipseLevel(networkUser, survivorPreference) + 1;
+                                currentEclipseLevel = ((currentEclipseLevel > 0) ? Math.Min(currentEclipseLevel, networkUserEclipseLevel) : networkUserEclipseLevel);
+                            }
+                        }
+                        currentEclipseLevel = Math.Min(currentEclipseLevel, Main.EclipseExtendedLoaded ? 16 : EclipseRun.maxEclipseLevel);
+                        Main.InfernoLogger.LogError("current eclipse level after everything is " + currentEclipseLevel);
+
+                        var isCompleted = eclipseLevelAsNumber >= currentEclipseLevel;
+
+                        if (isCompleted)
+                        {
+                            self.GetComponent<Image>().sprite = Main.inferno.LoadAsset<Sprite>("Assets/Inferno/texDifficultyEclipse" + eclipseLevelAsNumber + "IconGold.png");
+                        }
+                        else
+                        {
+                            self.GetComponent<Image>().sprite = Main.inferno.LoadAsset<Sprite>("Assets/Inferno/texDifficultyEclipse" + eclipseLevelAsNumber + "Icon.png");
                         }
                     }
-                    currentEclipseLevel = Math.Min(currentEclipseLevel, Main.EclipseExtendedLoaded ? 16 : EclipseRun.maxEclipseLevel);
-                    Main.InfernoLogger.LogError("current eclipse level after everything is " + currentEclipseLevel);
 
-                    var isCompleted = eclipseLevelAsNumber >= currentEclipseLevel;
-
-                    if (isCompleted)
+                    if (!Main.InfernalEclipse.Value)
                     {
-                        self.GetComponent<Image>().sprite = Main.inferno.LoadAsset<Sprite>("Assets/Inferno/texDifficultyEclipse" + eclipseLevelAsNumber + "IconGold.png");
-                    }
-                    else
-                    {
-                        self.GetComponent<Image>().sprite = Main.inferno.LoadAsset<Sprite>("Assets/Inferno/texDifficultyEclipse" + eclipseLevelAsNumber + "Icon.png");
-                    }
-                }
-
-                if (!Main.InfernalEclipse.Value)
-                {
-                    if (eclipseLevelAsNumber > 8)
-                    {
-                        self.GetComponent<Image>().sprite = Main.inferno.LoadAsset<Sprite>("Assets/Inferno/texFurryDifficultyEclipse" + eclipseLevelAsNumber + "Icon.png");
-                    }
-                    else
-                    {
-                        self.GetComponent<Image>().sprite = difficultyDef.GetIconSprite();
+                        if (eclipseLevelAsNumber > 8)
+                        {
+                            self.GetComponent<Image>().sprite = Main.inferno.LoadAsset<Sprite>("Assets/Inferno/texFurryDifficultyEclipse" + eclipseLevelAsNumber + "Icon.png");
+                        }
+                        else
+                        {
+                            self.GetComponent<Image>().sprite = difficultyDef.GetIconSprite();
+                        }
                     }
                 }
             }
