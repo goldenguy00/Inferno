@@ -22,20 +22,11 @@ namespace Inferno.Unlocks
         [SystemInitializer(typeof(HG.Reflection.SearchableAttribute.OptInAttribute))]
         private void OnClientGameOverGlobal(Run run, RunReport runReport)
         {
-            if (!runReport.gameEnding)
+            if (runReport.gameEnding && runReport.gameEnding.isWin && Main.IsInferno(runReport.ruleBook.FindDifficulty()))
             {
-                return;
-            }
-            if (runReport.gameEnding.isWin)
-            {
-                var difficultyIndex = runReport.ruleBook.FindDifficulty();
-                DifficultyDef difficultyDef = DifficultyCatalog.GetDifficultyDef(difficultyIndex);
-                if (difficultyDef != null && difficultyDef == Main.InfernoDiffDef || (difficultyIndex >= DifficultyIndex.Eclipse1 && Main.InfernalEclipse.Value))
-                {
-                    runReport.gameEnding.lunarCoinReward = 15;
-                    runReport.gameEnding.showCredits = false;
-                    Grant();
-                }
+                runReport.gameEnding.lunarCoinReward = 15;
+                runReport.gameEnding.showCredits = false;
+                Grant();
             }
         }
     }

@@ -21,6 +21,8 @@ using Inferno.Item;
 using ism = InfernoSkinMod;
 using R2API.ContentManagement;
 using Inferno.ExtraSkinStuff;
+using BepInEx.Bootstrap;
+using System.Linq;
 
 // using Inferno.ExtraSkinStuff;
 
@@ -268,7 +270,7 @@ namespace Inferno
             Run.onRunStartGlobal += (Run run) =>
             {
                 ShouldRun = false;
-                if (run.selectedDifficulty == InfernoDiffIndex || (InfernalEclipse.Value && run.selectedDifficulty >= DifficultyIndex.Eclipse1))
+                if (IsInferno(run.selectedDifficulty))
                 {
                     if (EnableStats.Value)
                     {
@@ -591,6 +593,15 @@ namespace Inferno
             InfernoDiffIndex = DifficultyAPI.AddDifficulty(InfernoDiffDef);
         }
 
+        public static bool IsInferno(DifficultyIndex difficultyIndex)
+        {
+            DifficultyDef difficultyDef = DifficultyCatalog.GetDifficultyDef(difficultyIndex);
+            return difficultyDef != null
+                && difficultyDef == InfernoDiffDef
+                || (difficultyIndex >= DifficultyIndex.Eclipse1 && InfernalEclipse.Value)
+                || (Chainloader.PluginInfos.ContainsKey("prodzpod.Downpour") && DownpourCompat.IsBrimstone(difficultyDef));
+        }
+            
         public void FillTokens()
         {
             InfernoDiffDef.scalingValue = Scaling.Value / 50f;
@@ -722,5 +733,10 @@ namespace Inferno
                 return (bool)_enabled;
             }
         }
+    }
+
+    public static class DownpourCompat
+    {
+        public static bool IsBrimstone(DifficultyDef def) => Downpour.DownpourPlugin.BrimstoneList.Contains(def);
     }
 }

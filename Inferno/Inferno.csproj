@@ -1,111 +1,114 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <LangVersion>preview</LangVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<LangVersion>preview</LangVersion>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="libs\**" />
-    <EmbeddedResource Remove="libs\**" />
-    <None Remove="libs\**" />
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Remove="libs\**" />
+		<EmbeddedResource Remove="libs\**" />
+		<None Remove="libs\**" />
+	</ItemGroup>
 
-  <ItemGroup>
-  <PackageReference Include="BepInEx.Analyzers" Version="1.0.*">
-	<PrivateAssets>all</PrivateAssets>
-	<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-  </PackageReference>
+	<ItemGroup>
+		<PackageReference Include="BepInEx.Analyzers" Version="1.0.*">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 
-	<PackageReference Include="BepInEx.Core" Version="5.4.21" />
+		<PackageReference Include="BepInEx.Core" Version="5.4.21" />
 
-    <PackageReference Include="UnityEngine.Modules" Version="2021.3.33" IncludeAssets="compile" />
-	<PackageReference Include="RiskOfRain2.GameLibs" Version="*-*" />
-	<PackageReference Include="MMHOOK.RoR2" Version="*-*" NoWarn="NU1701" />
-	<PackageReference Include="R2API" Version="*-*" />
-  </ItemGroup>
+		<PackageReference Include="UnityEngine.Modules" Version="2021.3.33" IncludeAssets="compile" />
+		<PackageReference Include="RiskOfRain2.GameLibs" Version="*-*" />
+		<PackageReference Include="MMHOOK.RoR2" Version="*-*" NoWarn="NU1701" />
+		<PackageReference Include="R2API" Version="*-*" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="Facepunch.Steamworks">
-      <HintPath>libs\Facepunch.Steamworks.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="HGCSharpUtils">
-      <HintPath>R:\Steamm\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\HGCSharpUtils.dll</HintPath>
-    </Reference>
-    <Reference Include="InfernoSkinMod">
-      <HintPath>..\..\..\..\..\InfernoSkinMod.dll</HintPath>
-    </Reference>
-    <Reference Include="KdTreeLib">
-      <HintPath>libs\KdTreeLib.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="KinematicCharacterController">
-      <HintPath>libs\KinematicCharacterController.dll</HintPath>
-    </Reference>
-    <Reference Include="MMHOOK_RoR2">
-      <HintPath>libs\MMHOOK_RoR2.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Security">
-      <HintPath>libs\Mono.Security.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="pb_Stl">
-      <HintPath>libs\pb_Stl.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Poly2Tri">
-      <HintPath>libs\Poly2Tri.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="ProBuilderCore">
-      <HintPath>libs\ProBuilderCore.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="ProBuilderMeshOps">
-      <HintPath>libs\ProBuilderMeshOps.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="R2API.ContentManagement">
-      <HintPath>..\..\..\..\R2API.ContentManagement.dll</HintPath>
-    </Reference>
-    <Reference Include="R2API.Difficulty">
-      <HintPath>..\..\..\..\R2API.Difficulty.dll</HintPath>
-    </Reference>
-    <Reference Include="R2API.Items">
-      <HintPath>..\..\..\..\R2API.Items.dll</HintPath>
-    </Reference>
-    <Reference Include="R2API.Language">
-      <HintPath>..\..\..\..\R2API.Language.dll</HintPath>
-    </Reference>
-    <Reference Include="R2API.RecalculateStats">
-      <HintPath>..\..\..\..\R2API.RecalculateStats.dll</HintPath>
-    </Reference>
-    <Reference Include="Rewired_Windows_Lib">
-      <HintPath>libs\Rewired_Windows_Lib.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="RiskOfOptions">
-      <HintPath>..\..\..\..\..\RiskOfOptions.dll</HintPath>
-    </Reference>
-    <Reference Include="RoR2">
-      <HintPath>..\..\..\..\..\..\Pictures\RoR2.dll</HintPath>
-    </Reference>
-    <Reference Include="SimpleJSON">
-      <HintPath>libs\SimpleJSON.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Unity.Postprocessing.Runtime">
-      <HintPath>P:\Steam\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\Unity.Postprocessing.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="Wwise">
-      <HintPath>libs\Wwise.dll</HintPath>
-    </Reference>
-    <Reference Include="Zio">
-      <HintPath>libs\Zio.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-  </ItemGroup>
+	<ItemGroup>
+		<Reference Include="Facepunch.Steamworks">
+			<HintPath>libs\Facepunch.Steamworks.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="HGCSharpUtils">
+			<HintPath>R:\Steamm\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\HGCSharpUtils.dll</HintPath>
+		</Reference>
+		<Reference Include="InfernoSkinMod">
+			<HintPath>..\..\..\..\..\InfernoSkinMod.dll</HintPath>
+		</Reference>
+		<Reference Include="KdTreeLib">
+			<HintPath>libs\KdTreeLib.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="KinematicCharacterController">
+			<HintPath>libs\KinematicCharacterController.dll</HintPath>
+		</Reference>
+		<Reference Include="MMHOOK_RoR2">
+			<HintPath>libs\MMHOOK_RoR2.dll</HintPath>
+		</Reference>
+		<Reference Include="Mono.Security">
+			<HintPath>libs\Mono.Security.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="pb_Stl">
+			<HintPath>libs\pb_Stl.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="Poly2Tri">
+			<HintPath>libs\Poly2Tri.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="ProBuilderCore">
+			<HintPath>libs\ProBuilderCore.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="ProBuilderMeshOps">
+			<HintPath>libs\ProBuilderMeshOps.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="R2API.ContentManagement">
+			<HintPath>..\..\..\..\R2API.ContentManagement.dll</HintPath>
+		</Reference>
+		<Reference Include="R2API.Difficulty">
+			<HintPath>..\..\..\..\R2API.Difficulty.dll</HintPath>
+		</Reference>
+		<Reference Include="R2API.Items">
+			<HintPath>..\..\..\..\R2API.Items.dll</HintPath>
+		</Reference>
+		<Reference Include="R2API.Language">
+			<HintPath>..\..\..\..\R2API.Language.dll</HintPath>
+		</Reference>
+		<Reference Include="R2API.RecalculateStats">
+			<HintPath>..\..\..\..\R2API.RecalculateStats.dll</HintPath>
+		</Reference>
+		<Reference Include="Rewired_Windows_Lib">
+			<HintPath>libs\Rewired_Windows_Lib.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="RiskOfOptions">
+			<HintPath>..\..\..\..\..\RiskOfOptions.dll</HintPath>
+		</Reference>
+		<Reference Include="RoR2">
+			<HintPath>..\..\..\..\..\..\Pictures\RoR2.dll</HintPath>
+		</Reference>
+		<Reference Include="SimpleJSON">
+			<HintPath>libs\SimpleJSON.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="Unity.Postprocessing.Runtime">
+			<HintPath>P:\Steam\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\Unity.Postprocessing.Runtime.dll</HintPath>
+		</Reference>
+		<Reference Include="Wwise">
+			<HintPath>libs\Wwise.dll</HintPath>
+		</Reference>
+		<Reference Include="Zio">
+			<HintPath>libs\Zio.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="Downpour">
+			<HintPath>libs\Downpour.dll</HintPath>
+		</Reference>
+	</ItemGroup>
 
 </Project>
