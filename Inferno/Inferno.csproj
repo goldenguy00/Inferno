@@ -27,15 +27,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Reference Include="Downpour">
+		  <HintPath>..\..\libs\Downpour-nstrip.dll</HintPath>
+		</Reference>
 		<Reference Include="Facepunch.Steamworks">
 			<HintPath>libs\Facepunch.Steamworks.dll</HintPath>
 			<Private>false</Private>
 		</Reference>
-		<Reference Include="HGCSharpUtils">
-			<HintPath>R:\Steamm\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\HGCSharpUtils.dll</HintPath>
-		</Reference>
 		<Reference Include="InfernoSkinMod">
 			<HintPath>..\..\..\..\..\InfernoSkinMod.dll</HintPath>
+		</Reference>
+		<Reference Include="InfernoSkinMod">
+		  <HintPath>..\..\..\..\..\InfernoSkinMod.dll</HintPath>
 		</Reference>
 		<Reference Include="KdTreeLib">
 			<HintPath>libs\KdTreeLib.dll</HintPath>
@@ -89,6 +92,9 @@
 		<Reference Include="RiskOfOptions">
 			<HintPath>..\..\..\..\..\RiskOfOptions.dll</HintPath>
 		</Reference>
+		<Reference Include="RiskOfOptions">
+		  <HintPath>..\..\..\..\..\RiskOfOptions.dll</HintPath>
+		</Reference>
 		<Reference Include="RoR2">
 			<HintPath>..\..\..\..\..\..\Pictures\RoR2.dll</HintPath>
 		</Reference>
@@ -97,7 +103,7 @@
 			<Private>false</Private>
 		</Reference>
 		<Reference Include="Unity.Postprocessing.Runtime">
-			<HintPath>P:\Steam\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\Unity.Postprocessing.Runtime.dll</HintPath>
+		  <HintPath>..\..\libs\Unity.Postprocessing.Runtime-nstrip.dll</HintPath>
 		</Reference>
 		<Reference Include="Wwise">
 			<HintPath>libs\Wwise.dll</HintPath>
@@ -107,7 +113,13 @@
 			<Private>false</Private>
 		</Reference>
 		<Reference Include="Downpour">
-			<HintPath>libs\Downpour.dll</HintPath>
+			<HintPath>..\..\libs\Downpour-nstrip.dll</HintPath>
+		</Reference>
+		<Reference Include="RiskOfOptions">
+			<HintPath>..\..\libs\RiskOfOptions-nstrip.dll</HintPath>
+		</Reference>
+		<Reference Include="InfernoSkinMod">
+			<HintPath>..\..\libs\InfernoSkinMod-nstrip.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 

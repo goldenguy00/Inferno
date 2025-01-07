@@ -105,10 +105,10 @@ namespace Inferno.Skill_Misc
             if (SceneManager.GetActiveScene().name == "moon2")
             {
                 var Arena = GameObject.Find("HOLDER: Final Arena").transform;
-                Main.Ramp1 = Arena.GetChild(0).gameObject;
-                Main.Ramp2 = Arena.GetChild(1).gameObject;
-                Main.Ramp3 = Arena.GetChild(2).gameObject;
-                Main.Rocks = Arena.GetChild(6).gameObject;
+                Main.Ramp1 = Arena.Find("Column_Outer").gameObject;
+                Main.Ramp2 = Arena.Find("Columns_Inner").gameObject;
+                Main.Ramp3 = Arena.Find("OctagonPlates").gameObject;
+                Main.Rocks = Arena.Find("Rocks").gameObject;
             }
             orig(self);
         }

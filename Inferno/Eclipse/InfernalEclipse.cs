@@ -58,7 +58,7 @@ namespace Inferno.Eclipse
             var characterSelectUIMain = GameObject.Find("CharacterSelectUIMain(Clone)").GetComponent<RectTransform>();
             var content = characterSelectUIMain.Find("SafeArea/RightHandPanel/RuleVerticalLayout/RuleBookViewerVertical/Viewport/Content");
             var firstRuleBookCategoryPrefab = content.GetChild(1);
-            var choiceContainer = firstRuleBookCategoryPrefab.Find("StripContainer/RuleStripPrefab(Clone)/ChoiceContainer");
+            var choiceContainer = firstRuleBookCategoryPrefab.Find("StripContainer/RuleStripPrefab(Clone)/ScrollChoiceContainer/ChoiceContainer");
             var choice = choiceContainer.GetChild(0);
             var choiceName = choice.name;
             Main.InfernoLogger.LogError(choiceName);
