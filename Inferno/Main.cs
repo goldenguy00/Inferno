@@ -43,7 +43,7 @@ namespace Inferno
 
         public const string PluginAuthor = "HIFU";
         public const string PluginName = "Inferno";
-        public const string PluginVersion = "1.7.7";
+        public const string PluginVersion = "1.7.8";
 
         public static DifficultyDef InfernoDiffDef;
 
