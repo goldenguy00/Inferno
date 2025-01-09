@@ -155,7 +155,8 @@ namespace Inferno
         {
             Main.InfernoLogger = base.Logger;
 
-            On.RoR2.Networking.NetworkManagerSystemSteam.OnClientConnect += (s, u, t) => { };
+            // https://thunderstore.io/c/riskofrain2/p/Nuxlar/MultiplayerModTesting/
+            //On.RoR2.Networking.NetworkManagerSystemSteam.OnClientConnect += (s, u, t) => { };
 
             EclipseExtendedLoaded = false; /*BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.groovesalad.EclipseExtended");*/
 
